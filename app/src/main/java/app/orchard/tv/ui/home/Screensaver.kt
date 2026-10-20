@@ -1,9 +1,10 @@
 package app.orchard.tv.ui.home
 
-import android.net.Uri
+import android.os.Build
+import android.os.SystemClock
 import android.util.Log
 import android.view.KeyEvent
-import android.widget.VideoView
+import android.view.SurfaceView
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -25,12 +26,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,10 +50,14 @@ import app.orchard.tv.apps.AppEntry
 import app.orchard.tv.ui.theme.LocalReducedMotion
 import app.orchard.tv.ui.theme.Motion
 import app.orchard.tv.ui.theme.Type
+import app.orchard.tv.wallpaper.AerialStream
 import app.orchard.tv.wallpaper.Aerials
 import app.orchard.tv.wallpaper.ScreensaverMode
 import app.orchard.tv.wallpaper.WallpaperKind
 import app.orchard.tv.wallpaper.Wallpapers
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -145,87 +150,122 @@ private fun Labels(caption: String?, now: LocalDateTime) {
 
 private const val TAG = "AerialScreensaver"
 
-/** Set for the rest of the process once a film fails over HTTPS. */
-private var aerialsOverHttp by mutableStateOf(false)
+/**
+ * Before Android 7.0 network_security_config is ignored, so Apple Root CA is never trusted and
+ * HTTPS to Apple's video host always fails, but only after the player has retried for about half a
+ * minute (34 s on TCL 75S365C). Those versions start on HTTP. From 7.0 on this is set for the rest of
+ * the process once a film fails over HTTPS.
+ */
+private var aerialsOverHttp by mutableStateOf(Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
 
 @Composable
 private fun AerialSaver(now: LocalDateTime, steps: SharedFlow<Int>, onUnavailable: () -> Unit) {
     val context = LocalContext.current
-    val films = remember { Aerials.all(context).shuffled() }
+    val films = remember { AerialStream.withOpenerFirst(context, Aerials.all(context).shuffled()) }
+    val player = remember { AerialStream.player(context) }
     var index by remember { mutableIntStateOf(0) }
     var failures by remember { mutableIntStateOf(0) }
     var playing by remember { mutableStateOf(false) }
     var caption by remember { mutableStateOf<String?>(null) }
-    var view by remember { mutableStateOf<VideoView?>(null) }
+    // Bumped whenever a film is (re)started, so the stall check below starts over.
+    var attempt by remember { mutableIntStateOf(0) }
     val film = films[index.mod(films.size)]
-    val url = if (aerialsOverHttp) film.url.replaceFirst("https://", "http://") else film.url
-    // The player's listeners are set once, in the factory; they need the address playing now.
-    val currentUrl by rememberUpdatedState(url)
 
-    // Black veil that lifts once the film is actually moving, and drops between films.
+    // Black veil that lifts once the film is actually moving, and drops when the viewer skips.
     val veil by animateFloatAsState(if (playing) 0f else 1f, tween(if (playing) 1500 else 400), label = "veil")
+
+    fun load(at: Int) {
+        player.setMediaItems(films.map { AerialStream.mediaItem(it, aerialsOverHttp) }, at, 0)
+        player.prepare()
+        player.playWhenReady = true
+    }
+
+    fun skip(step: Int) {
+        playing = false
+        if (step < 0) player.seekToPreviousMediaItem() else player.seekToNextMediaItem()
+        if (player.playbackState == Player.STATE_IDLE) player.prepare()
+    }
+
+    DisposableEffect(player) {
+        val opened = SystemClock.elapsedRealtime()
+        val listener = object : Player.Listener {
+            override fun onRenderedFirstFrame() {
+                if (!playing) Log.i(TAG, "first frame of ${player.currentMediaItem?.mediaId} after ${SystemClock.elapsedRealtime() - opened} ms")
+                playing = true
+                failures = 0
+            }
+
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                index = player.currentMediaItemIndex
+                attempt++
+                // A film that simply ended hands over to the next one, already loaded, without a gap.
+                if (reason != Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) playing = false
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                Log.w(TAG, "aerial film failed (${error.errorCodeName}): ${player.currentMediaItem?.localConfiguration?.uri}")
+                playing = false
+                // Apple's video host chains to Apple Root CA, which Android does not ship. From 7.0 on
+                // network_security_config trusts it for this host; 5.0 and 6.0 ignore that file and
+                // start on HTTP. The same files are served over plain HTTP; try that before giving up.
+                if (!aerialsOverHttp) {
+                    aerialsOverHttp = true
+                    load(player.currentMediaItemIndex)
+                } else {
+                    failures++
+                    skip(1)
+                }
+                attempt++
+            }
+        }
+        player.addListener(listener)
+        load(0)
+        onDispose {
+            player.removeListener(listener)
+            player.release()
+        }
+    }
 
     LaunchedEffect(index) {
         caption = null
         while (true) {
             delay(1000)
-            val v = view ?: continue
-            if (playing) caption = film.captionAt(v.currentPosition / 1000)
+            if (playing) caption = film.captionAt((player.currentPosition / 1000).toInt())
         }
     }
     LaunchedEffect(steps) {
         steps.collect { step ->
-            // With one film the URI would not change and the veil would never lift again.
             if (films.size < 2) return@collect
-            playing = false
-            index += step
+            skip(step)
         }
+    }
+    // A film the CDN serves slowly is passed over rather than waited for.
+    LaunchedEffect(attempt, playing) {
+        if (playing) return@LaunchedEffect
+        delay(STALL_MS)
+        Log.w(TAG, "no picture from ${player.currentMediaItem?.mediaId} after $STALL_MS ms; next film")
+        failures++
+        skip(1)
     }
     LaunchedEffect(failures) {
         if (failures >= 3) onUnavailable()
     }
+    // While a film plays, get the next screensaver's first film ready on disk.
+    LaunchedEffect(playing) {
+        if (playing) AerialStream.prepareOpener(context, films, film, aerialsOverHttp)
+    }
 
     AndroidView(
         modifier = Modifier.fillMaxSize(),
-        factory = { ctx ->
-            VideoView(ctx).apply {
-                setOnPreparedListener { mp ->
-                    mp.setVolume(0f, 0f)
-                    mp.setOnInfoListener { _, what, _ ->
-                        if (what == android.media.MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
-                            if (currentUrl.startsWith("http://")) Log.i(TAG, "aerial films play over HTTP on this TV")
-                            playing = true
-                            failures = 0
-                        }
-                        false
-                    }
-                    start()
-                }
-                setOnCompletionListener { playing = false; index++ }
-                setOnErrorListener { _, what, extra ->
-                    Log.w(TAG, "aerial film failed ($what, $extra): $currentUrl")
-                    playing = false
-                    // Apple's video host chains to Apple Root CA, which older TVs (Android 5.0 at least)
-                    // do not trust. The same files are served over plain HTTP; try that before giving up.
-                    if (!aerialsOverHttp) aerialsOverHttp = true
-                    else { failures++; index++ }
-                    true
-                }
-                view = this
-            }
-        },
-        update = { v ->
-            if (v.tag != url) {
-                v.tag = url
-                playing = false
-                v.setVideoURI(Uri.parse(url))
-            }
-        },
-        onRelease = { it.stopPlayback() },
+        factory = { ctx -> SurfaceView(ctx).also { player.setVideoSurfaceView(it) } },
+        onRelease = { player.clearVideoSurfaceView(it) },
     )
     Box(Modifier.fillMaxSize().graphicsLayer { alpha = veil }.background(Color.Black))
     Labels(if (playing) caption ?: film.captionAt(0) else null, now)
 }
+
+/** How long a film may take to show its first frame before the next one is tried. */
+private const val STALL_MS = 8_000L
 
 @Composable
 private fun PhotoSaver(now: LocalDateTime, steps: SharedFlow<Int>) {
