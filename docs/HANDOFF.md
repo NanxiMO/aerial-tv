@@ -6,7 +6,7 @@
 
 - 版本 **1.7（versionCode 8）**，两台都已安装。两台真机都在日常使用：小米 MiTV-MFTR0（`standard`）、TCL MT5879 国行（`guard`）。
 - 具体 IP、每台电视上改过的设置、户主自己的数据：见 **`local/TVS.md`**（不在版本库，需要单独私下拿到）。
-- 开源在 https://github.com/pengchujin/aerial-tv（MIT）。官网在 `site/`（纯静态，计划部署到 Cloudflare Pages）。还没有自动化测试，以下结论都来自真机操作和日志。
+- 开源在 https://github.com/pengchujin/aerial-tv（MIT）。官网在 `site/`，已部署到 https://aerial.qust.me（Cloudflare Worker 静态资源）。还没有自动化测试，以下结论都来自真机操作和日志。
 
 ### 真机验证过的功能
 
@@ -67,7 +67,7 @@ adb -s $XIAOMI_TV:5555 shell cmd package compile -m speed -f app.orchard.tv
    cp app/build/outputs/apk/guard/release/app-guard-release.apk /tmp/aerial-guard.apk
    gh release create vX.Y /tmp/aerial-standard.apk /tmp/aerial-guard.apk --title "Aerial X.Y" --notes "..."
    ```
-4. 官网 `site/` 部署在 Cloudflare Pages（构建命令留空，输出目录 `site`）。`site/_redirects` 会把 `/install.sh` 跳转到 GitHub 上的 `tools/get.sh`，把 `/download/standard`、`/download/guard` 跳转到最新 APK。
+4. 官网 `site/` 是 Cloudflare Worker 静态资源（配置见 `wrangler.jsonc`），绑定在 https://aerial.qust.me 和 https://tv.qust.me。改完官网运行 `npx wrangler@4 deploy`。`site/_redirects` 会把 `/install.sh` 跳转到 GitHub 上的 `tools/get.sh`，把 `/download/standard`、`/download/guard` 跳转到最新 APK。
 
 ## 调试技巧
 

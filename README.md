@@ -7,7 +7,7 @@
 参照 tvOS 设计的 Android TV 桌面：没有广告位，没有推荐流，只有你的 App、你选的壁纸，和 Apple TV 式的航拍屏保。
 为小米、TCL 等国内电视而做，开机自动接管，不怕被系统清理。
 
-<a href="https://github.com/pengchujin/aerial-tv"><img alt="官网" src="https://img.shields.io/badge/%E5%AE%98%E7%BD%91-1f6feb?style=for-the-badge&logo=safari&logoColor=white"></a>
+<a href="https://aerial.qust.me"><img alt="官网" src="https://img.shields.io/badge/%E5%AE%98%E7%BD%91-1f6feb?style=for-the-badge&logo=safari&logoColor=white"></a>
 <a href="https://github.com/pengchujin/aerial-tv/releases/latest"><img alt="下载 APK" src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD%20APK-34a853?style=for-the-badge&logo=android&logoColor=white"></a>
 <a href="#用-agent-安装推荐"><img alt="让 Agent 帮你装" src="https://img.shields.io/badge/%E8%AE%A9%20Agent%20%E5%B8%AE%E4%BD%A0%E8%A3%85-d97757?style=for-the-badge&logo=claude&logoColor=white"></a>
 <a href="#第一步打开电视的-adb-调试"><img alt="开启 ADB" src="https://img.shields.io/badge/%E5%BC%80%E5%90%AF%20ADB-555555?style=for-the-badge&logo=gnubash&logoColor=white"></a>
