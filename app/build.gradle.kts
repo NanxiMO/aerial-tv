@@ -15,8 +15,8 @@ android {
         applicationId = "app.orchard.tv"
         minSdk = 26
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.7"
+        versionCode = 9
+        versionName = "1.8"
     }
 
     // standard: a normal HOME app. guard: no HOME intent filter at all, for China-market firmwares
