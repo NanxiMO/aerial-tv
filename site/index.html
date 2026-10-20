@@ -271,7 +271,7 @@
         <button type="button" class="replay"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/></svg>再看一遍</button>
         <button type="button" class="legend legend-before">电视自带的桌面</button>
       </div>
-      <p class="compare-hint">左右移动鼠标，或点上面的按钮切换</p>
+      <p class="compare-hint">在画面上左右移动鼠标，或点上面的按钮切换</p>
     </div>
   </div>
 </header>
@@ -535,10 +535,9 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
   }));
 
   // Before/after: the TV's own launcher on the right of the line, Aerial on the left. The line
-  // follows the pointer across the hero, eased so it glides rather than jumps.
+  // follows the pointer while it is over the TV, eased so it glides rather than jumps.
   (() => {
     const box = $('#compare');
-    const hero = document.querySelector('.hero');
     const legendAfter = document.querySelector('.legend-after'), legendBefore = document.querySelector('.legend-before');
     const divider = box.querySelector('.divider');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -588,7 +587,8 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
       tween++; touched = true; go(fromEvent(e));
     };
 
-    hero.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') follow(e); });
+    // Only over the TV itself, so reaching for the buttons underneath leaves the line alone.
+    box.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') follow(e); });
     box.addEventListener('pointerdown', e => { tween++; tweenUntil = 0; held = null; touched = true; box.setPointerCapture(e.pointerId); go(fromEvent(e)); });
     box.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse' && box.hasPointerCapture(e.pointerId)) go(fromEvent(e)); });
     box.addEventListener('keydown', e => {
