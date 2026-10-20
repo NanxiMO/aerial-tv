@@ -185,7 +185,7 @@ Aerial 启动后会自己打开桌面守护。完整的步骤（屏保、亮度�
 | 小米 MiTV-MFTR0 | Android 14 / HyperOS TV | 日常使用中 | [docs/devices/xiaomi-mitv-mftr0.md](docs/devices/xiaomi-mitv-mftr0.md) |
 | TCL MT5879 国行 | Android 11 | 日常使用中 | [docs/devices/tcl-mt5879-cn.md](docs/devices/tcl-mt5879-cn.md) |
 
-其他品牌（海信、创维、索尼等）按同样的思路应该可以工作，但还没在真机上验证。欢迎提交 Issue 或 PR 补充你的机型。
+其他品牌（海信、创维、索尼等）按同样的思路应该可以工作，但还没在真机上验证。欢迎[提交 Issue](https://github.com/pengchujin/aerial-tv/issues) 或 PR 补充你的机型。
 
 ## 已知限制
 
