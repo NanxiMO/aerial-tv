@@ -1,7 +1,6 @@
 package app.orchard.tv.ui.control
 
 import android.view.KeyEvent as NativeKeyEvent
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -58,7 +57,6 @@ import app.orchard.tv.CcPage
 import app.orchard.tv.HomeViewModel
 import app.orchard.tv.Overlay
 import app.orchard.tv.R
-import app.orchard.tv.guard.HomeGuardService
 import app.orchard.tv.settings.AerialSettings
 import app.orchard.tv.settings.FocusStyle
 import app.orchard.tv.system.HomeStatus
@@ -180,12 +178,6 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, onOpen: (android.con
                 stringResource(R.string.cc_network),
             ) { onOpen(SystemProbe.networkSettingsIntent(context)) }
             RoundButton(Glyph.Gear, stringResource(R.string.cc_settings)) { onOpen(SystemProbe.settingsIntent(context)) }
-            if (HomeGuardService.canSleep) {
-                val needsGuard = stringResource(R.string.cc_sleep_needs_guard)
-                RoundButton(Glyph.Moon, stringResource(R.string.cc_sleep)) {
-                    if (!HomeGuardService.sleep()) Toast.makeText(context, needsGuard, Toast.LENGTH_LONG).show()
-                }
-            }
         }
 
         Spacer(Modifier.height(16.dp))

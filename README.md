@@ -53,7 +53,7 @@
 ![控制中心](site/img/control-center.jpg)
 
 按遥控器的「菜单 ≡」键打开，或在第一行按上键选中右上角。
-- **快捷入口**：信号源（HDMI / ATV / DTMB / AV，显示 CEC 设备）、网络、设置、睡眠。网络和设置会打开电视厂商自己的界面。
+- **快捷入口**：信号源（HDMI / ATV / DTMB / AV，显示 CEC 设备）、网络、设置。网络和设置会打开电视厂商自己的界面。
 - **调节**：音量和亮度滑块，用左右键调节。
 - **其他**：壁纸与屏保、隐藏的 App、Aerial 设置（焦点样式）、桌面守护状态。
 
@@ -185,8 +185,10 @@ Aerial 启动后会自己打开桌面守护。完整的步骤（屏保、亮度�
 |---|---|---|---|
 | 小米 MiTV-MFTR0 | Android 14 / HyperOS TV | 日常使用中 | [docs/devices/xiaomi-mitv-mftr0.md](docs/devices/xiaomi-mitv-mftr0.md) |
 | TCL MT5879 国行 | Android 11 | 日常使用中 | [docs/devices/tcl-mt5879-cn.md](docs/devices/tcl-mt5879-cn.md) |
+| Redmi X65 2026（MiTV-MFTR0） | Android 14 / HyperOS TV | 用户验证：安装、重启后自动进入 Aerial（[#3](https://github.com/pengchujin/aerial-tv/issues/3)） | 同小米 MiTV-MFTR0 |
+| Sony BRAVIA VH1 国行 | Android 12 | 用户验证；亮度改为打开 Sony 的图像设置（[#2](https://github.com/pengchujin/aerial-tv/issues/2)） | — |
 
-其他品牌（海信、创维、索尼等）按同样的思路应该可以工作，但还没在真机上验证。欢迎[提交 Issue](https://github.com/pengchujin/aerial-tv/issues) 或 PR 补充你的机型。
+其他品牌（海信、创维等）按同样的思路应该可以工作，但还没在真机上验证。欢迎[提交 Issue](https://github.com/pengchujin/aerial-tv/issues) 或 PR 补充你的机型。
 
 ## 已知限制
 

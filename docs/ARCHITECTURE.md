@@ -35,7 +35,7 @@ app/src/main/java/app/orchard/tv/
 │   ├── SystemState.kt       SystemProbe：网络、音量、桌面状态、设置入口、信号源（TvInputManager + 小米路由 + 机型修正）
 │   └── Brightness.kt        亮度：小米 picture_backlight / 标准 screen_brightness / TCL 走面板
 ├── guard/
-│   ├── HomeGuardService.kt  无障碍「桌面守护」：拦 HOME 键、原桌面出现就切回、亮屏检查、睡眠、ADB 保持
+│   ├── HomeGuardService.kt  无障碍「桌面守护」：拦 HOME 键、原桌面出现就切回、亮屏检查、ADB 保持
 │   ├── GuardSetup.kt        用 WRITE_SECURE_SETTINGS 重新开启守护 / 保持 ADB / 「已启用未绑定」时强制重绑
 │   ├── RevivalListener.kt   通知监听服务：被强杀后由系统重绑，借此复活并重开守护
 │   ├── BootReceiver.kt      真正重启后的兜底

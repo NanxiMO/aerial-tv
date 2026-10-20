@@ -4,7 +4,7 @@
 
 ## 现状（2026-10-20）
 
-- 版本 **1.8（versionCode 9）**：小米已装 1.8；TCL 还是 1.7（升级要在电视上点一次「同意」）。两台真机都在日常使用：小米 MiTV-MFTR0（`standard`）、TCL MT5879 国行（`guard`）。
+- 版本 **1.10（versionCode 11）**：小米装的是 1.10 的同一份代码（版本号还没改前编的包，versionCode 10）；TCL 还是 1.7（升级要在电视上点一次「同意」）。两台真机都在日常使用：小米 MiTV-MFTR0（`standard`）、TCL MT5879 国行（`guard`）。
 - 具体 IP、每台电视上改过的设置、户主自己的数据：见 **`local/TVS.md`**（不在版本库，需要单独私下拿到）。
 - 开源在 https://github.com/pengchujin/aerial-tv（MIT）。官网在 `site/`，已部署到 https://aerial.qust.me（Cloudflare Worker 静态资源）。还没有自动化测试，以下结论都来自真机操作和日志。
 
@@ -35,7 +35,6 @@
 **Android 5.0–7.1 的老电视**（1.9 起 minSdk 21，Compose 降到 1.9.5）：小米上装了这一版回归过（首页、焦点、控制中心、壁纸页和手机页、航拍屏保走 HTTPS 正常）。老系统没有真机，在 Android 5.0.2 模拟器（`aerial21`，arm64）上验证过：桌面、焦点、控制中心（音量、亮度）、壁纸页和二维码、手机配置页、守护版接管 HOME。和新系统的差别：
 
 - 界面字体用系统的 Roboto（Inter 的字重靠可变字体，Android 8.0 才支持）；App 图标用 PNG（自适应图标同理）。
-- 控制中心没有「睡眠」（无障碍的锁屏动作 Android 9 才有）。
 - Android 5.0 上无障碍服务接不到 HOME 键，守护版靠「原桌面一出现就拉回」，会闪一下原桌面。
 - 老系统不信任 Apple 的根证书，航拍视频的 HTTPS 会失败，屏保会自动改用 HTTP（`res/xml/network_security_config.xml` 只对 `sylvan.apple.com` 放行明文）。模拟器的软件解码器只支持 H.264 Baseline，解不了 Apple 的视频，所以航拍画面本身还没在 5.x 上看到过，要等真机。
 - Android 4.4 做不到：Compose 最低要求 Android 5.0。

@@ -61,7 +61,7 @@ object TileArtFactory {
 
     fun fromIcon(icon: Drawable): TileArt {
         if (Build.VERSION.SDK_INT >= 26 && icon is AdaptiveIconDrawable && icon.foreground != null) adaptive(icon)?.let { return it }
-        return legacy(icon)
+        return plate(icon) ?: legacy(icon)
     }
 
     /** Null when the foreground ignores the adaptive safe zone (a legacy icon wrapped as adaptive). */
@@ -100,6 +100,83 @@ object TileArtFactory {
             }
         }
         return if (max < 0) 0f else (max - min) / n.toFloat()
+    }
+
+    /**
+     * A legacy icon that is a filled rounded square (most China-market apps ship these: a logo on a
+     * white or colored plate). Drawn small in the middle it reads as an icon on a tile, not as the
+     * tile. Instead the plate's own color is carried across the whole tile, top edge to bottom
+     * edge, and the icon is drawn the full tile height with its sides faded into that color, the
+     * way a tvOS icon fills its card. Null for any other shape.
+     */
+    private fun plate(icon: Drawable): TileArt? {
+        val n = 256
+        val b = createBitmap(n, n)
+        icon.setBounds(0, 0, n, n)
+        icon.draw(Canvas(b))
+        val px = IntArray(n * n)
+        b.getPixels(px, 0, n, 0, 0, n, n)
+        fun solid(c: Int) = c ushr 24 > 200
+        var l = n; var t = n; var r = -1; var bt = -1
+        for (y in 0 until n) for (x in 0 until n) if (solid(px[y * n + x])) {
+            l = minOf(l, x); r = maxOf(r, x); t = minOf(t, y); bt = maxOf(bt, y)
+        }
+        val w = r - l + 1
+        val h = bt - t + 1
+        // A square at least half the canvas, and nearly all of it solid: a rounded square fills
+        // about 96% of its box, a circle 79%.
+        var filled = 0
+        if (r >= 0) for (y in t..bt) for (x in l..r) if (solid(px[y * n + x])) filled++
+        if (r < 0 || w < n / 2 || kotlin.math.abs(w - h) > w * 0.06f || filled < w * h * 0.9f) {
+            b.recycle()
+            return null
+        }
+        // The plate's color along its top and bottom edges, inside the corner rounding.
+        fun band(fromY: Int, toY: Int): Int? {
+            var rr = 0L; var gg = 0L; var bb = 0L; var count = 0
+            val xs = (l + w / 4)..(r - w / 4)
+            for (y in fromY..toY) for (x in xs) {
+                val c = px[y * n + x]
+                rr += (c shr 16) and 0xFF; gg += (c shr 8) and 0xFF; bb += c and 0xFF; count++
+            }
+            val mr = rr / count; val mg = gg / count; val mb = bb / count
+            // A logo running into the edge leaves no single color to carry across the tile.
+            var spread = 0L
+            for (y in fromY..toY) for (x in xs) {
+                val c = px[y * n + x]
+                spread += kotlin.math.abs(((c shr 16) and 0xFF) - mr) + kotlin.math.abs(((c shr 8) and 0xFF) - mg) + kotlin.math.abs((c and 0xFF) - mb)
+            }
+            return if (spread / count > 36) null else android.graphics.Color.rgb(mr.toInt(), mg.toInt(), mb.toInt())
+        }
+        val edge = (h * 0.04f).roundToInt()
+        val depth = (h * 0.06f).roundToInt()
+        val top = band(t + edge, t + edge + depth)
+        val bottom = band(bt - edge - depth, bt - edge)
+        if (top == null || bottom == null) {
+            b.recycle()
+            return null
+        }
+
+        val back = createBitmap(W, H)
+        Canvas(back).drawRect(0f, 0f, W.toFloat(), H.toFloat(), Paint().apply {
+            shader = LinearGradient(0f, 0f, 0f, H.toFloat(), top, bottom, Shader.TileMode.CLAMP)
+        })
+        val fore = createBitmap(H, H)
+        Canvas(fore).apply {
+            drawBitmap(b, android.graphics.Rect(l, t, r + 1, bt + 1), android.graphics.Rect(0, 0, H, H), Paint(Paint.FILTER_BITMAP_FLAG))
+            // Fade the left and right sides, corners included, into the tile.
+            val fade = H * 0.24f
+            drawRect(0f, 0f, H.toFloat(), H.toFloat(), Paint().apply {
+                shader = LinearGradient(
+                    0f, 0f, H.toFloat(), 0f,
+                    intArrayOf(0, android.graphics.Color.BLACK, android.graphics.Color.BLACK, 0),
+                    floatArrayOf(0f, fade / H, 1f - fade / H, 1f), Shader.TileMode.CLAMP,
+                )
+                xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.DST_IN)
+            })
+        }
+        b.recycle()
+        return finish(back, fore, 1f)
     }
 
     private fun legacy(icon: Drawable): TileArt {

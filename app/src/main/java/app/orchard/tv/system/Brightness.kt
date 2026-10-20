@@ -13,6 +13,9 @@ import androidx.core.content.ContextCompat
  * - Xiaomi (MediaTek, China firmware): Settings.Global "picture_backlight", 0–100, applied by the
  *   firmware's TV menu service as soon as it changes. Writing it needs WRITE_SECURE_SETTINGS.
  * - TCL: its own TV service only; Control Center opens TCL's picture panel.
+ * - Sony BRAVIA: the screen brightness setting changes but the backlight does not (no backlight in
+ *   the display config); Control Center opens Sony's picture settings, which DISPLAY_SETTINGS
+ *   resolves to. Reported on a BRAVIA VH1, Android 12 (GitHub issue #2).
  * - Others: the standard Settings.System screen brightness, 0–255. Writing it needs the "modify
  *   system settings" app-op. Both are granted by tools/install.sh; without them Control Center
  *   opens the TV's own picture settings instead.
@@ -26,6 +29,9 @@ object Brightness {
     private fun isTcl(context: Context) =
         runCatching { context.packageManager.getPackageInfo("com.tcl.settings", 0) }.isSuccess
 
+    private fun isSony(context: Context) =
+        runCatching { context.packageManager.getPackageInfo("com.sony.dtv.configsettings", 0) }.isSuccess
+
     /** Current level as 0..1, or null when Aerial cannot change it on this TV. */
     fun level(context: Context): Float? {
         val r = context.contentResolver
@@ -33,10 +39,10 @@ object Brightness {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return null
             Settings.Global.getInt(r, XIAOMI_BACKLIGHT, 50) / 100f
         } else {
-            // TCL drives its backlight through its own TV service and ignores the system setting
-            // (checked on a TCL MT5879 set); Control Center opens TCL's picture panel instead.
+            // TCL and Sony drive the backlight through their own TV services and ignore the system
+            // setting (TCL MT5879, Sony BRAVIA VH1); Control Center opens their picture panels.
             // Before Android 6.0 WRITE_SETTINGS is granted at install.
-            if (isTcl(context) || Build.VERSION.SDK_INT >= 23 && !Settings.System.canWrite(context)) return null
+            if (isTcl(context) || isSony(context) || Build.VERSION.SDK_INT >= 23 && !Settings.System.canWrite(context)) return null
             Settings.System.getInt(r, Settings.System.SCREEN_BRIGHTNESS, 128) / 255f
         }
     }

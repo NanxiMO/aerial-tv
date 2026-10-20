@@ -4,6 +4,7 @@
 - 1920×1080，320dpi（960×540dp）。GPU 很弱，见 ARCHITECTURE.md 的性能约束。
 - 原桌面：`com.mitv.tvhome/.MainActivityUserMode`（PatchWall）。备用桌面：`com.xiaomi.mitv.settings/.entry.FallbackHome`（priority -1000）。
 - 安装的 flavor：`standard`。普通的 `adb install` 就能装。
+- 同平台的零售型号：**Redmi X65 2026** 也上报 `MiTV-MFTR0`。用户在 OS3.0.107.0.UFTMATV 上验证过一键安装和重启后自动进入 Aerial（GitHub #3）。
 
 ## HOME 锁定
 

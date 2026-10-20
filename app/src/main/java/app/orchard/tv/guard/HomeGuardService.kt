@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.database.ContentObserver
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
@@ -28,7 +27,6 @@ import app.orchard.tv.MainActivity
  *    boots into it), Aerial is brought back on top.
  *
  * Both only act while Aerial is not the resolved HOME app; once it is, the system does the work.
- * It also lets Control Center put the TV to sleep, which no ordinary app permission allows.
  * The service reads window-change events only; it never reads screen content.
  */
 class HomeGuardService : AccessibilityService() {
@@ -174,11 +172,5 @@ class HomeGuardService : AccessibilityService() {
         fun onAerialResumed() {
             instance?.allowStockUntil = 0L
         }
-
-        /** The lock-screen action that puts the TV to sleep arrived in Android 9. */
-        val canSleep: Boolean get() = Build.VERSION.SDK_INT >= 28
-
-        /** Puts the TV into standby, the same way the power button's short press does. */
-        fun sleep(): Boolean = canSleep && instance?.performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN) == true
     }
 }

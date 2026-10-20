@@ -24,7 +24,7 @@ import kotlin.math.sin
  * A small set of line glyphs drawn in the spirit of SF Symbols: one stroke weight, round caps,
  * optically centered in a square box. Drawn, not bundled, so they stay crisp at every size.
  */
-enum class Glyph { Wifi, Ethernet, Offline, Moon, Gear, Input, Speaker, SpeakerMuted, Switches, EyeSlash, Move, Info, Trash, ChevronRight, ChevronLeft, Check, Hdmi, Antenna, Av, Sun, Photo, Play }
+enum class Glyph { Wifi, Ethernet, Offline, Gear, Input, Speaker, SpeakerMuted, Switches, EyeSlash, Move, Info, Trash, ChevronRight, ChevronLeft, Check, Hdmi, Antenna, Av, Sun, Photo, Play }
 
 @Composable
 fun GlyphIcon(glyph: Glyph, color: Color, size: Dp, modifier: Modifier = Modifier, level: Float = 1f) {
@@ -69,11 +69,6 @@ fun DrawScope.drawGlyph(glyph: Glyph, color: Color, level: Float = 1f) {
         Glyph.Offline -> {
             drawGlyph(Glyph.Wifi, color.copy(alpha = color.alpha * 0.35f), 1f)
             line(0.18f, 0.16f, 0.82f, 0.86f)
-        }
-        Glyph.Moon -> {
-            val outer = Path().apply { addOval(Rect(p(0.14f, 0.14f), Size(0.72f * s, 0.72f * s))) }
-            val bite = Path().apply { addOval(Rect(p(0.36f, 0.02f), Size(0.66f * s, 0.66f * s))) }
-            drawPath(Path.combine(PathOperation.Difference, outer, bite), color)
         }
         Glyph.Gear -> {
             val c = p(0.5f, 0.5f)
