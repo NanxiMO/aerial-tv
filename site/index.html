@@ -558,7 +558,19 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
     set(0);
     // A first sweep wipes the TV's launcher away and rests on Aerial; it gives way as soon as someone moves the pointer.
     if (reduced) { set(1); return; }
-    const start = () => setTimeout(() => { if (!touched) go(1); }, 700);
+    // The intro is its own slow, timed wipe (the pointer-follow easing is too quick for it).
+    const intro = (duration = 2200) => {
+      const t0 = performance.now();
+      const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const step = now => {
+        if (touched) return;
+        const t = Math.min(1, (now - t0) / duration);
+        set(ease(t)); target = x;
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    const start = () => setTimeout(() => { if (!touched) intro(); }, 600);
     const seen = new IntersectionObserver(es => { if (es[0].isIntersecting) { seen.disconnect(); start(); } }, { threshold: 0.5 });
     seen.observe(box);
   })();
