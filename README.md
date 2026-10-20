@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/brand/icon.png" width="96" alt="Aerial 图标">
+
 # Aerial
 
 **给国产电视的一块干净桌面。**

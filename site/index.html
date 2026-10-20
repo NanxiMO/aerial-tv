@@ -84,7 +84,7 @@
   .compare { --x: 0%; cursor: ew-resize; touch-action: pan-y; user-select: none; -webkit-user-select: none; outline: none; }
   .compare img { -webkit-user-drag: none; pointer-events: none; }
   .compare .before { position: absolute; inset: 0; height: 100%; clip-path: inset(0 0 0 var(--x)); }
-  .compare .divider { position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; margin-left: -1px; background: rgba(255,255,255,.9); box-shadow: 0 0 18px rgba(0,0,0,.5); }
+  .compare .divider { transition: opacity .25s ease; position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; margin-left: -1px; background: rgba(255,255,255,.9); box-shadow: 0 0 18px rgba(0,0,0,.5); }
   .compare .knob {
     position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%;
     display: grid; place-items: center; color: #111; background: rgba(255,255,255,.92);
@@ -312,14 +312,6 @@
         <div class="shot"><img src="img/screensaver-aerial-2.jpg" alt="航拍屏保：洛杉矶好莱坞标志" loading="lazy" width="1600" height="900"></div>
         <figcaption>航拍：洛杉矶好莱坞标志</figcaption>
       </figure>
-      <figure>
-        <div class="shot"><img src="img/screensaver-clock.jpg" alt="时钟屏保" loading="lazy" width="1600" height="900"></div>
-        <figcaption>时钟：每分钟换一个位置，防止烧屏</figcaption>
-      </figure>
-      <figure>
-        <div class="shot"><img src="img/grid.jpg" alt="往下滚动后的应用网格" loading="lazy" width="1600" height="900"></div>
-        <figcaption>往下滚动，时钟让位给更多 App</figcaption>
-      </figure>
     </div>
   </div>
 </section>
@@ -532,6 +524,7 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
     const box = $('#compare');
     const hero = document.querySelector('.hero');
     const tagAfter = box.querySelector('.tag-after'), tagBefore = box.querySelector('.tag-before');
+    const divider = box.querySelector('.divider');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let x = 0, target = 0, raf = 0, touched = false;
     const set = v => {
@@ -540,6 +533,8 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
       box.setAttribute('aria-valuenow', Math.round(x * 100));
       tagAfter.style.opacity = x > 0.18 ? 1 : 0;
       tagBefore.style.opacity = x < 0.82 ? 1 : 0;
+      // At either end the line and its knob would hang half off the screen; let them go.
+      divider.style.opacity = x > 0.03 && x < 0.97 ? 1 : 0;
     };
     const tick = () => {
       const d = target - x;
