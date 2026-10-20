@@ -185,6 +185,7 @@ Aerial 启动后会自己打开桌面守护。完整的步骤（屏保、亮度�
 | 机型 | 系统 | 状态 | 笔记 |
 |---|---|---|---|
 | 小米 MiTV-MFTR0 | Android 14 / HyperOS TV | 日常使用中 | [docs/devices/xiaomi-mitv-mftr0.md](docs/devices/xiaomi-mitv-mftr0.md) |
+| 小米 MiTV-MFFU0 | Android 14 / HyperOS TV | 安装、开机自启已验证 | [docs/devices/xiaomi-mitv-mffu0.md](docs/devices/xiaomi-mitv-mffu0.md) |
 | TCL MT5879 国行 | Android 11 | 日常使用中 | [docs/devices/tcl-mt5879-cn.md](docs/devices/tcl-mt5879-cn.md) |
 | Redmi X65 2026（MiTV-MFTR0） | Android 14 / HyperOS TV | 用户验证：安装、重启后自动进入 Aerial（[#3](https://github.com/pengchujin/aerial-tv/issues/3)） | 同小米 MiTV-MFTR0 |
 | Sony BRAVIA VH1 国行 | Android 12 | 用户验证；亮度改为打开 Sony 的图像设置（[#2](https://github.com/pengchujin/aerial-tv/issues/2)） | — |
