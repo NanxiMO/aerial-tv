@@ -60,4 +60,10 @@
     <string name="wp_phone_offline">电视联网后即可用手机设置。</string>
     <string name="ss_start">立即开始</string>
     <string name="ss_back_hint">提示：在主页第一行按返回键，也可以立即开始屏保。</string>
+    <string name="cc_aerial_settings">Aerial 设置</string>
+    <string name="st_focus_style">焦点样式</string>
+    <string name="st_focus_high">高对比度</string>
+    <string name="st_focus_standard">标准</string>
+    <string name="st_focus_high_hint">选中的 App 外面加一圈白色描边，离得远也看得清。</string>
+    <string name="st_focus_standard_hint">与 Apple TV 默认一致：选中的 App 只放大浮起。</string>
 </resources>

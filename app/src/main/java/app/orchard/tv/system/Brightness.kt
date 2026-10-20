@@ -3,7 +3,9 @@ package app.orchard.tv.system
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.Settings
+import androidx.core.content.ContextCompat
 
 /**
  * Panel brightness. TVs keep it in different places:
@@ -28,12 +30,13 @@ object Brightness {
     fun level(context: Context): Float? {
         val r = context.contentResolver
         return if (usesXiaomiBacklight(context)) {
-            if (context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return null
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return null
             Settings.Global.getInt(r, XIAOMI_BACKLIGHT, 50) / 100f
         } else {
             // TCL drives its backlight through its own TV service and ignores the system setting
             // (checked on a TCL MT5879 set); Control Center opens TCL's picture panel instead.
-            if (isTcl(context) || !Settings.System.canWrite(context)) return null
+            // Before Android 6.0 WRITE_SETTINGS is granted at install.
+            if (isTcl(context) || Build.VERSION.SDK_INT >= 23 && !Settings.System.canWrite(context)) return null
             Settings.System.getInt(r, Settings.System.SCREEN_BRIGHTNESS, 128) / 255f
         }
     }

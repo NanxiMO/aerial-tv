@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
+import androidx.core.content.ContextCompat
 import android.util.Log
 import app.orchard.tv.dream.AerialDream
 
@@ -45,7 +46,7 @@ object GuardSetup {
 
     fun ensureAdb(context: Context) {
         if (!keepAdb(context)) return
-        if (context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return
         val resolver = context.contentResolver
         if (Settings.Global.getInt(resolver, Settings.Global.ADB_ENABLED, 0) == 1) return
         runCatching {
@@ -61,7 +62,7 @@ object GuardSetup {
      */
     fun rebindIfStalled(context: Context) {
         if (HomeGuardService.isRunning) return
-        if (context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return
         val me = ComponentName(context, HomeGuardService::class.java).flattenToString()
         val resolver = context.contentResolver
         val entries = Settings.Secure.getString(resolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES).orEmpty()
@@ -106,7 +107,7 @@ object GuardSetup {
 
     fun ensureEnabled(context: Context) {
         ensureAdb(context)
-        if (context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return
         keepScreensaver(context)
         val me = ComponentName(context, HomeGuardService::class.java).flattenToString()
         val resolver = context.contentResolver

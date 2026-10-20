@@ -59,6 +59,8 @@ import app.orchard.tv.HomeViewModel
 import app.orchard.tv.Overlay
 import app.orchard.tv.R
 import app.orchard.tv.guard.HomeGuardService
+import app.orchard.tv.settings.AerialSettings
+import app.orchard.tv.settings.FocusStyle
 import app.orchard.tv.system.HomeStatus
 import app.orchard.tv.system.NetKind
 import app.orchard.tv.system.SourceKind
@@ -88,7 +90,7 @@ fun ControlCenter(
     onClose: () -> Unit,
 ) {
     BackHandler(enabled = visible) {
-        if (page == CcPage.Inputs) vm.overlay = Overlay.ControlCenter(CcPage.Main) else onClose()
+        if (page != CcPage.Main) vm.overlay = Overlay.ControlCenter(CcPage.Main) else onClose()
     }
 
     AnimatedVisibility(
@@ -118,7 +120,7 @@ fun ControlCenter(
                 AnimatedContent(
                     targetState = page,
                     transitionSpec = {
-                        val forward = targetState == CcPage.Inputs
+                        val forward = targetState != CcPage.Main
                         (fadeIn(tween(200, delayMillis = 40)) + slideInHorizontally(tween(260, easing = Motion.EaseOut)) { if (forward) it / 6 else -it / 6 })
                             .togetherWith(fadeOut(tween(120)) + slideOutHorizontally(tween(200, easing = Motion.EaseOut)) { if (forward) -it / 8 else it / 8 })
                     },
@@ -127,6 +129,7 @@ fun ControlCenter(
                     when (p) {
                         CcPage.Main -> MainPage(vm, now, onOpen)
                         CcPage.Inputs -> InputsPage(vm, onOpen)
+                        CcPage.Settings -> SettingsPage(vm)
                     }
                 }
             }
@@ -177,9 +180,11 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, onOpen: (android.con
                 stringResource(R.string.cc_network),
             ) { onOpen(SystemProbe.networkSettingsIntent(context)) }
             RoundButton(Glyph.Gear, stringResource(R.string.cc_settings)) { onOpen(SystemProbe.settingsIntent(context)) }
-            val needsGuard = stringResource(R.string.cc_sleep_needs_guard)
-            RoundButton(Glyph.Moon, stringResource(R.string.cc_sleep)) {
-                if (!HomeGuardService.sleep()) Toast.makeText(context, needsGuard, Toast.LENGTH_LONG).show()
+            if (HomeGuardService.canSleep) {
+                val needsGuard = stringResource(R.string.cc_sleep_needs_guard)
+                RoundButton(Glyph.Moon, stringResource(R.string.cc_sleep)) {
+                    if (!HomeGuardService.sleep()) Toast.makeText(context, needsGuard, Toast.LENGTH_LONG).show()
+                }
             }
         }
 
@@ -199,6 +204,11 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, onOpen: (android.con
             stringResource(R.string.cc_hidden_apps),
             onClick = { vm.overlay = Overlay.HiddenApps },
             trailing = vm.hiddenApps.size.toString(),
+        )
+        MenuRow(
+            Glyph.Switches,
+            stringResource(R.string.cc_aerial_settings),
+            onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Settings) },
         )
 
         Spacer(Modifier.height(12.dp))
@@ -339,6 +349,54 @@ private fun InputsPage(vm: HomeViewModel, onOpen: (android.content.Intent) -> Un
                 focusRequester = if (i == 0) first else null,
                 onClick = { onOpen(source.intent) },
             )
+        }
+    }
+}
+
+/** Aerial's own settings, a page inside Control Center like Inputs. */
+@Composable
+private fun SettingsPage(vm: HomeViewModel) {
+    val first = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        withFrameNanos { }
+        runCatching { first.requestFocus() }
+    }
+    Column {
+        MenuRow(Glyph.ChevronLeft, stringResource(R.string.cc_aerial_settings), onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Main) })
+        Spacer(Modifier.height(10.dp))
+        BasicText(stringResource(R.string.st_focus_style), style = Type.Callout, modifier = Modifier.padding(start = 14.dp, bottom = 6.dp))
+        val current = AerialSettings.focusStyle
+        listOf(
+            FocusStyle.HighContrast to R.string.st_focus_high,
+            FocusStyle.Standard to R.string.st_focus_standard,
+        ).forEachIndexed { i, (style, label) ->
+            ChoiceRow(
+                text = stringResource(label),
+                selected = current == style,
+                focusRequester = if (i == 0) first else null,
+                onClick = { AerialSettings.chooseFocusStyle(style) },
+            )
+        }
+        BasicText(
+            stringResource(if (current == FocusStyle.HighContrast) R.string.st_focus_high_hint else R.string.st_focus_standard_hint),
+            style = Type.Caption,
+            modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 8.dp),
+        )
+    }
+}
+
+/** A row in a list of choices: the chosen one carries a check, as in tvOS settings. */
+@Composable
+private fun ChoiceRow(text: String, selected: Boolean, focusRequester: FocusRequester?, onClick: () -> Unit) {
+    Pressable(onClick = onClick, focusRequester = focusRequester, focusedScale = 1.03f, modifier = Modifier.fillMaxWidth()) { state ->
+        val bg by animateColorAsState(if (state.focused) Palette.Focus else Color.Transparent, tween(140, easing = Motion.EaseOut), label = "choice-bg")
+        val fg = if (state.focused) Palette.OnFocus else Palette.Label
+        Row(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(bg).height(44.dp).padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            BasicText(text, style = Type.Body.copy(color = fg), modifier = Modifier.weight(1f))
+            if (selected) GlyphIcon(Glyph.Check, fg, 16.dp)
         }
     }
 }

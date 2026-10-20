@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.database.ContentObserver
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
@@ -15,6 +16,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.content.getSystemService
 import app.orchard.tv.MainActivity
 
 /**
@@ -62,16 +64,22 @@ class HomeGuardService : AccessibilityService() {
         registerReceiver(screenOn, IntentFilter(Intent.ACTION_SCREEN_ON))
         contentResolver.registerContentObserver(Settings.Global.getUriFor(Settings.Global.ADB_ENABLED), false, adbObserver)
         GuardSetup.ensureAdb(this)
-        val revived = SystemClock.elapsedRealtime() - GuardSetup.lastRevivedAt < 60_000
         // Bound a little after boot, or brought back after the firmware killed Aerial: either way
         // the stock launcher is what's in front, and the window change that showed it is long gone.
+        // Not after an update, though: installing over Aerial also kills it, and whoever is watching
+        // an input or another app at that moment must not be pulled back to Home.
+        val revived = SystemClock.elapsedRealtime() - GuardSetup.lastRevivedAt < 60_000 && !justUpdated()
         if ((SystemClock.elapsedRealtime() < BOOT_WINDOW_MS || revived) && !isDefaultHome() &&
-            getSystemService(PowerManager::class.java)?.isInteractive == true
+            getSystemService<PowerManager>()?.isInteractive == true
         ) {
             Log.i(TAG, if (revived) "re-enabled after being switched off; taking over Home" else "bound shortly after boot; taking over Home")
             goHome()
         }
     }
+
+    private fun justUpdated(): Boolean = runCatching {
+        System.currentTimeMillis() - packageManager.getPackageInfo(packageName, 0).lastUpdateTime < 2 * 60_000
+    }.getOrDefault(false)
 
     private fun takeOverIfStockHomeInFront(reason: String) {
         if (isDefaultHome()) return
@@ -167,7 +175,10 @@ class HomeGuardService : AccessibilityService() {
             instance?.allowStockUntil = 0L
         }
 
+        /** The lock-screen action that puts the TV to sleep arrived in Android 9. */
+        val canSleep: Boolean get() = Build.VERSION.SDK_INT >= 28
+
         /** Puts the TV into standby, the same way the power button's short press does. */
-        fun sleep(): Boolean = instance?.performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN) ?: false
+        fun sleep(): Boolean = canSleep && instance?.performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN) == true
     }
 }

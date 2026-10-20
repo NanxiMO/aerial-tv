@@ -8,6 +8,8 @@ import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Shader
 import android.graphics.drawable.AdaptiveIconDrawable
+import androidx.annotation.RequiresApi
+import android.os.Build
 import android.graphics.drawable.Drawable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -58,11 +60,12 @@ object TileArtFactory {
     }
 
     fun fromIcon(icon: Drawable): TileArt {
-        if (icon is AdaptiveIconDrawable && icon.foreground != null) adaptive(icon)?.let { return it }
+        if (Build.VERSION.SDK_INT >= 26 && icon is AdaptiveIconDrawable && icon.foreground != null) adaptive(icon)?.let { return it }
         return legacy(icon)
     }
 
     /** Null when the foreground ignores the adaptive safe zone (a legacy icon wrapped as adaptive). */
+    @RequiresApi(26)
     private fun adaptive(icon: AdaptiveIconDrawable): TileArt? {
         // The foreground's 108-unit square keeps the logo inside its middle 66 units, so a
         // square as tall as the tile shows the logo at roughly the size tvOS uses.

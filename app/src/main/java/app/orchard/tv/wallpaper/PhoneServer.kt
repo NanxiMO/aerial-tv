@@ -5,6 +5,10 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.os.Build
+import androidx.core.content.getSystemService
+import app.orchard.tv.settings.AerialSettings
+import app.orchard.tv.system.currentNetwork
+import app.orchard.tv.settings.FocusStyle
 import androidx.core.graphics.createBitmap
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
@@ -51,6 +55,11 @@ class PhoneServer private constructor(private val context: Context, private val 
                     onMain { Wallpapers.chooseScreensaver(mode) }
                     json(state())
                 }
+                session.method == Method.POST && path == "/api/focus" -> {
+                    val style = FocusStyle.of(form(session)["style"])
+                    onMain { AerialSettings.chooseFocusStyle(style) }
+                    json(state())
+                }
                 session.method == Method.POST && path == "/api/delete" -> {
                     val id = form(session)["id"].orEmpty()
                     onMain { Wallpapers.deletePhoto(id) }
@@ -75,6 +84,7 @@ class PhoneServer private constructor(private val context: Context, private val 
             .put("selected", selected)
             .put("latestDaily", Wallpapers.LATEST_DAILY)
             .put("screensaver", Wallpapers.screensaver.key)
+            .put("focusStyle", AerialSettings.focusStyle.key)
             .put("wallpapers", list)
     }
 
@@ -144,8 +154,8 @@ class PhoneServer private constructor(private val context: Context, private val 
         }
 
         private fun lanAddress(context: Context): String? {
-            val cm = context.getSystemService(ConnectivityManager::class.java) ?: return null
-            val props = cm.getLinkProperties(cm.activeNetwork) ?: return null
+            val cm = context.getSystemService<ConnectivityManager>() ?: return null
+            val props = cm.getLinkProperties(cm.currentNetwork() ?: return null) ?: return null
             return props.linkAddresses.map { it.address }.firstOrNull { it is Inet4Address && !it.isLoopbackAddress }?.hostAddress
         }
 

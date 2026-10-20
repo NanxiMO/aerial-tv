@@ -3,8 +3,9 @@
 
     python3 tools/render-brand.py          # needs rsvg-convert and Pillow
 
-The square launcher icon is a vector adaptive icon (res/drawable/ic_launcher_*.xml) and needs no
-rendering; docs/brand/icon.svg is its source of truth for the website and README.
+The square launcher icon is a vector adaptive icon (res/drawable/ic_launcher_*.xml) on Android 8.0
+and later; docs/brand/icon.svg is its source of truth for the website and README. Android 5.x to 7.x
+cannot read adaptive icons, so this also renders mipmap-*/ic_launcher.png from that SVG.
 """
 import os
 import subprocess
@@ -14,6 +15,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ART = os.path.join(ROOT, "docs/brand/banner-art.svg")
+ICON = os.path.join(ROOT, "docs/brand/icon.svg")
 FONT = os.path.join(ROOT, "app/src/main/res/font/inter.ttf")
 RES = os.path.join(ROOT, "app/src/main/res")
 
@@ -34,7 +36,27 @@ def banner(scale):
     return img
 
 
+def legacy_icon(px):
+    """The visible 72 of the 108 adaptive canvas, as a rounded square px wide."""
+    full = px * 108 // 72
+    with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
+        subprocess.run(["rsvg-convert", "-w", str(full), "-h", str(full), ICON, "-o", tmp.name], check=True)
+        img = Image.open(tmp.name).convert("RGBA")
+    inset = (full - px) // 2
+    img = img.crop((inset, inset, inset + px, inset + px))
+    # Draw the mask at 4x and scale down for a smooth edge.
+    mask = Image.new("L", (px * 4, px * 4), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, px * 4 - 1, px * 4 - 1), radius=px * 4 * 0.22, fill=255)
+    img.putalpha(mask.resize((px, px), Image.LANCZOS))
+    return img
+
+
 if __name__ == "__main__":
+    for density, px in (("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 144), ("xxxhdpi", 192)):
+        out = os.path.join(RES, f"mipmap-{density}", "ic_launcher.png")
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        legacy_icon(px).save(out, optimize=True)
+        print(out)
     for density, scale in (("xhdpi", 2), ("xxhdpi", 3)):
         out = os.path.join(RES, f"drawable-{density}", "banner.png")
         os.makedirs(os.path.dirname(out), exist_ok=True)

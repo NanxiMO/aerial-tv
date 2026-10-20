@@ -1,5 +1,6 @@
 package app.orchard.tv.ui.theme
 
+import android.os.Build
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
@@ -47,9 +48,10 @@ object Motion {
 val LocalReducedMotion = staticCompositionLocalOf { false }
 
 // Inter has an optical size axis. Text sizes get the 14pt master, display sizes the 32pt master,
-// the way SF Pro switches between Text and Display.
+// the way SF Pro switches between Text and Display. Font variations need Android 8.0; before that
+// every weight would come out as Inter Regular, so those TVs use the system's Roboto instead.
 @OptIn(ExperimentalTextApi::class)
-private fun inter(opticalSize: Float) = FontFamily(
+private fun inter(opticalSize: Float) = if (Build.VERSION.SDK_INT < 26) FontFamily.SansSerif else FontFamily(
     (1..9).map { i ->
         val w = i * 100
         Font(

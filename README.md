@@ -16,7 +16,7 @@
 
 <a href="https://github.com/pengchujin/aerial-tv/releases/latest"><img alt="版本" src="https://img.shields.io/github/v/release/pengchujin/aerial-tv?style=flat-square&label=%E7%89%88%E6%9C%AC&color=2997ff"></a>
 <a href="LICENSE"><img alt="许可证 MIT" src="https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF%E8%AF%81-MIT-555555?style=flat-square"></a>
-<img alt="Android TV 8.0+" src="https://img.shields.io/badge/Android%20TV-8.0%2B-3ddc84?style=flat-square&logo=android&logoColor=white">
+<img alt="Android TV 5.0+" src="https://img.shields.io/badge/Android%20TV-5.0%2B-3ddc84?style=flat-square&logo=android&logoColor=white">
 
 ![Aerial 首页](site/img/home.jpg)
 
@@ -37,6 +37,7 @@
 
 - **大号细体时钟**：显示在壁纸上，壁纸的底部和左侧会自动压暗，保证文字和 App 都看得清。往下滚动时，时钟淡出，状态栏出现小时钟。
 - **应用网格**：每行 5 个。聚焦时磁贴浮起、出现柔光，名字从下方浮现；按到边缘会轻轻倾斜回弹。
+- **焦点样式**：默认「高对比度」，选中的 App 外面会加一圈白色描边，离得远也看得清（对应 tvOS「辅助功能 → 增强对比度 → 焦点样式」）。想要和 Apple TV 出厂一样只浮起不描边，可以在「控制中心 → Aerial 设置」或手机扫码页里改成「标准」。
 - **图标处理**：有 TV 横幅的直接用横幅；自适应图标拆成前后两层，有视差效果；老式图标放在用它自身模糊做成的毛玻璃底板上。
 - **全部 App 都在**：标准的 TV 入口和手机入口都会收录，小米的「应用中心」「高清播放器」「米家」这类没有标准入口的系统 App 也会显示出来。
 - **返回键**：和 tvOS 一样，在网格里按返回会回到第一行，在第一行按返回会立即开始屏保。
@@ -54,7 +55,7 @@
 按遥控器的「菜单 ≡」键打开，或在第一行按上键选中右上角。
 - **快捷入口**：信号源（HDMI / ATV / DTMB / AV，显示 CEC 设备）、网络、设置、睡眠。网络和设置会打开电视厂商自己的界面。
 - **调节**：音量和亮度滑块，用左右键调节。
-- **其他**：壁纸与屏保、隐藏的 App、桌面守护状态。
+- **其他**：壁纸与屏保、隐藏的 App、Aerial 设置（焦点样式）、桌面守护状态。
 
 ### 航拍屏保
 

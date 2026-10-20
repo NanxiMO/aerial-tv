@@ -36,10 +36,12 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.KeyEventType
@@ -55,6 +57,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import app.orchard.tv.apps.AppEntry
+import app.orchard.tv.settings.AerialSettings
+import app.orchard.tv.settings.FocusStyle
 import app.orchard.tv.ui.components.isSelect
 import app.orchard.tv.ui.theme.LocalReducedMotion
 import app.orchard.tv.ui.theme.Motion
@@ -64,9 +68,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-private const val FOCUSED_SCALE = 1.12f
+// D-pad remotes give no tilt to follow, so the lift itself has to read from across the room.
+private const val FOCUSED_SCALE = 1.15f
 private const val PRESSED_SCALE = 1.05f
 private val Corner = 12.dp
+
+// High-contrast focus frame: a white ring this far outside the tile, as tvOS draws it.
+private val RingGap = 5.dp
+private val RingWidth = 3.dp
 
 /**
  * One app on the home screen, drawn the tvOS way: it lifts toward you when focused, a soft light
@@ -121,6 +130,11 @@ fun AppTile(
         targetValue = if (focused || moving) 1f else 0f,
         animationSpec = spring(dampingRatio = 1f, stiffness = 380f),
         label = "tile-lift",
+    )
+    val ring by animateFloatAsState(
+        targetValue = if (AerialSettings.focusStyle == FocusStyle.HighContrast) 1f else 0f,
+        animationSpec = tween(200, easing = Motion.EaseOut),
+        label = "tile-ring",
     )
 
     // tvOS "jiggle" while the app is being moved.
@@ -178,7 +192,7 @@ fun AppTile(
                     translationX = push.value.x
                     translationY = push.value.y
                     cameraDistance = 14f * density
-                    shadowElevation = 26.dp.toPx() * lift
+                    shadowElevation = 32.dp.toPx() * lift
                     shape = RoundedCornerShape(Corner)
                     clip = true
                 }
@@ -278,7 +292,7 @@ fun AppTile(
                     val glintX = size.width * (0.3f + leanY.value / 7f * 0.25f)
                     drawRect(
                         Brush.radialGradient(
-                            0f to Color.White.copy(alpha = 0.22f * lift),
+                            0f to Color.White.copy(alpha = 0.28f * lift),
                             1f to Color.Transparent,
                             center = Offset(glintX, -size.height * 0.25f),
                             radius = size.width * 0.75f,
@@ -295,9 +309,53 @@ fun AppTile(
             }
         }
 
+        if (ring > 0.01f && lift > 0.01f) {
+            // The frame sits outside the tile, so it is drawn on its own unclipped layer that moves
+            // exactly as the tile does: same lift, lean, push and jiggle.
+            Canvas(
+                Modifier
+                    .size(width, height)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        rotationY = leanY.value
+                        rotationX = leanX.value
+                        rotationZ = wobble?.value ?: 0f
+                        translationX = push.value.x
+                        translationY = push.value.y
+                        cameraDistance = 14f * density
+                        alpha = ring * lift
+                    },
+            ) {
+                val gap = RingGap.toPx()
+                val w = RingWidth.toPx()
+                val out = gap + w / 2
+                // A faint dark edge outside the white one keeps the frame visible over bright sky or snow.
+                val halo = gap + w + 1.dp.toPx()
+                drawRoundRect(
+                    Color.Black.copy(alpha = 0.3f),
+                    topLeft = Offset(-halo, -halo),
+                    size = Size(size.width + halo * 2, size.height + halo * 2),
+                    cornerRadius = CornerRadius(Corner.toPx() + halo),
+                    style = Stroke(width = 2.dp.toPx()),
+                )
+                drawRoundRect(
+                    Color.White,
+                    topLeft = Offset(-out, -out),
+                    size = Size(size.width + out * 2, size.height + out * 2),
+                    cornerRadius = CornerRadius(Corner.toPx() + out),
+                    style = Stroke(width = w),
+                )
+            }
+        }
+
         BasicText(
             text = app.label,
-            style = Type.Body.copy(textAlign = TextAlign.Center),
+            style = Type.Headline.copy(
+                textAlign = TextAlign.Center,
+                // Names sit on the wallpaper; a soft shadow keeps them readable over bright photos.
+                shadow = Shadow(Color.Black.copy(alpha = 0.6f), blurRadius = 8f),
+            ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
@@ -307,7 +365,8 @@ fun AppTile(
                 .graphicsLayer {
                     alpha = lift
                     // Sits just under the lifted tile, and rises into place as it appears.
-                    translationY = height.toPx() * (scale - 1f) / 2f - (1f - lift) * 6.dp.toPx()
+                    translationY = height.toPx() * (scale - 1f) / 2f - (1f - lift) * 6.dp.toPx() +
+                        ring * (RingGap + RingWidth).toPx() * scale
                 },
         )
     }

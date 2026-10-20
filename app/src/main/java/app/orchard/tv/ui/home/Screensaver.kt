@@ -1,6 +1,7 @@
 package app.orchard.tv.ui.home
 
 import android.net.Uri
+import android.util.Log
 import android.view.KeyEvent
 import android.widget.VideoView
 import androidx.compose.animation.AnimatedContent
@@ -29,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -141,6 +143,11 @@ private fun Labels(caption: String?, now: LocalDateTime) {
     }
 }
 
+private const val TAG = "AerialScreensaver"
+
+/** Set for the rest of the process once a film fails over HTTPS. */
+private var aerialsOverHttp by mutableStateOf(false)
+
 @Composable
 private fun AerialSaver(now: LocalDateTime, steps: SharedFlow<Int>, onUnavailable: () -> Unit) {
     val context = LocalContext.current
@@ -151,6 +158,9 @@ private fun AerialSaver(now: LocalDateTime, steps: SharedFlow<Int>, onUnavailabl
     var caption by remember { mutableStateOf<String?>(null) }
     var view by remember { mutableStateOf<VideoView?>(null) }
     val film = films[index.mod(films.size)]
+    val url = if (aerialsOverHttp) film.url.replaceFirst("https://", "http://") else film.url
+    // The player's listeners are set once, in the factory; they need the address playing now.
+    val currentUrl by rememberUpdatedState(url)
 
     // Black veil that lifts once the film is actually moving, and drops between films.
     val veil by animateFloatAsState(if (playing) 0f else 1f, tween(if (playing) 1500 else 400), label = "veil")
@@ -183,6 +193,7 @@ private fun AerialSaver(now: LocalDateTime, steps: SharedFlow<Int>, onUnavailabl
                     mp.setVolume(0f, 0f)
                     mp.setOnInfoListener { _, what, _ ->
                         if (what == android.media.MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
+                            if (currentUrl.startsWith("http://")) Log.i(TAG, "aerial films play over HTTP on this TV")
                             playing = true
                             failures = 0
                         }
@@ -191,15 +202,23 @@ private fun AerialSaver(now: LocalDateTime, steps: SharedFlow<Int>, onUnavailabl
                     start()
                 }
                 setOnCompletionListener { playing = false; index++ }
-                setOnErrorListener { _, _, _ -> playing = false; failures++; index++; true }
+                setOnErrorListener { _, what, extra ->
+                    Log.w(TAG, "aerial film failed ($what, $extra): $currentUrl")
+                    playing = false
+                    // Apple's video host chains to Apple Root CA, which older TVs (Android 5.0 at least)
+                    // do not trust. The same files are served over plain HTTP; try that before giving up.
+                    if (!aerialsOverHttp) aerialsOverHttp = true
+                    else { failures++; index++ }
+                    true
+                }
                 view = this
             }
         },
         update = { v ->
-            if (v.tag != film.url) {
-                v.tag = film.url
+            if (v.tag != url) {
+                v.tag = url
                 playing = false
-                v.setVideoURI(Uri.parse(film.url))
+                v.setVideoURI(Uri.parse(url))
             }
         },
         onRelease = { it.stopPlayback() },

@@ -7,6 +7,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.NetworkRequest
+import android.os.Build
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
@@ -16,6 +18,7 @@ import android.view.KeyEvent
 import android.view.WindowManager
 import android.provider.Settings
 import android.widget.Toast
+import androidx.core.content.getSystemService
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -32,6 +35,7 @@ import app.orchard.tv.guard.GuardSetup
 import app.orchard.tv.guard.HomeGuardService
 import app.orchard.tv.ui.home.HomeScreen
 import app.orchard.tv.ui.theme.LocalReducedMotion
+import app.orchard.tv.settings.AerialSettings
 import app.orchard.tv.wallpaper.Wallpapers
 
 class MainActivity : ComponentActivity() {
@@ -60,6 +64,7 @@ class MainActivity : ComponentActivity() {
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
         Wallpapers.init(this)
+        AerialSettings.init(this)
         val reducedMotion = Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
 
         // The home screen paints every pixel itself; a window background would be one more
@@ -159,7 +164,10 @@ class MainActivity : ComponentActivity() {
             IntentFilter("android.media.VOLUME_CHANGED_ACTION"),
             ContextCompat.RECEIVER_EXPORTED,
         )
-        getSystemService(ConnectivityManager::class.java)?.registerDefaultNetworkCallback(networkCallback)
+        getSystemService<ConnectivityManager>()?.let { cm ->
+            if (Build.VERSION.SDK_INT >= 24) cm.registerDefaultNetworkCallback(networkCallback)
+            else cm.registerNetworkCallback(NetworkRequest.Builder().build(), networkCallback)
+        }
         // Apps can change while Aerial is in the background without it hearing about it.
         vm.reload()
         Wallpapers.refreshDailyIfStale()
@@ -182,7 +190,7 @@ class MainActivity : ComponentActivity() {
         super.onStop()
         unregisterReceiver(packageReceiver)
         unregisterReceiver(volumeReceiver)
-        runCatching { getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(networkCallback) }
+        runCatching { getSystemService<ConnectivityManager>()?.unregisterNetworkCallback(networkCallback) }
     }
 
     /** Opens an app, growing it out of its tile. */

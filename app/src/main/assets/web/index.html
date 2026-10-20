@@ -33,6 +33,7 @@
   h2 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .02em; color: var(--secondary); margin: 28px 4px 8px; }
   .group { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
   .segmented { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--fill); border-radius: 10px; padding: 2px; gap: 2px; }
+  .segmented.two { grid-template-columns: repeat(2, 1fr); }
   .segmented button {
     appearance: none; border: 0; background: transparent; color: var(--label); font: inherit; font-size: 15px; font-weight: 500;
     padding: 9px 0; border-radius: 8px; transition: background .2s ease, box-shadow .2s ease;
@@ -86,12 +87,19 @@
 </header>
 
 <h2>屏幕保护程序</h2>
-<div class="segmented" role="group" aria-label="屏保">
+<div class="segmented" id="ss" role="group" aria-label="屏保">
   <button data-mode="aerial">航拍</button>
   <button data-mode="photos">照片</button>
   <button data-mode="clock">时钟</button>
 </div>
 <p class="hint" id="ssHint"></p>
+
+<h2>焦点样式</h2>
+<div class="segmented two" id="focus" role="group" aria-label="焦点样式">
+  <button data-style="high_contrast">高对比度</button>
+  <button data-style="standard">标准</button>
+</div>
+<p class="hint" id="focusHint"></p>
 
 <h2>从手机添加</h2>
 <label class="upload" id="uploadBtn">
@@ -158,9 +166,14 @@ function card(w, selected, extraClass) {
 }
 
 function render() {
-  document.querySelectorAll('.segmented button').forEach(b =>
+  document.querySelectorAll('#ss button').forEach(b =>
     b.setAttribute('aria-pressed', b.dataset.mode === state.screensaver ? 'true' : 'false'));
   $('#ssHint').textContent = hints[state.screensaver] || '';
+  document.querySelectorAll('#focus button').forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.style === state.focusStyle ? 'true' : 'false'));
+  $('#focusHint').textContent = state.focusStyle === 'standard'
+    ? '与 Apple TV 默认一致：选中的 App 只放大浮起。'
+    : '选中的 App 外面加一圈白色描边，离得远也看得清。';
   const root = $('#sections'); root.innerHTML = '';
   for (const [kind, title, sub] of groups) {
     let list = state.wallpapers.filter(w => w.kind === kind);
@@ -179,8 +192,11 @@ function render() {
   }
 }
 
-document.querySelectorAll('.segmented button').forEach(b => b.onclick = async () => {
+document.querySelectorAll('#ss button').forEach(b => b.onclick = async () => {
   state = await api('api/screensaver', { mode: b.dataset.mode }); render();
+});
+document.querySelectorAll('#focus button').forEach(b => b.onclick = async () => {
+  state = await api('api/focus', { style: b.dataset.style }); render(); toast('电视上已更新');
 });
 
 $('#file').onchange = async e => {

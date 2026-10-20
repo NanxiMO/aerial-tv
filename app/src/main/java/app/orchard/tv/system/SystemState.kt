@@ -9,13 +9,24 @@ import android.media.tv.TvContract
 import android.media.tv.TvInputInfo
 import android.media.tv.TvInputManager
 import android.net.ConnectivityManager
+import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
+import androidx.core.content.getSystemService
 import app.orchard.tv.guard.HomeGuardService
 
 enum class NetKind { Wifi, Ethernet, Offline }
+
+/** The network apps use by default. ConnectivityManager.activeNetwork only exists from Android 6.0. */
+fun ConnectivityManager.currentNetwork(): Network? {
+    if (Build.VERSION.SDK_INT >= 23) return activeNetwork
+    @Suppress("DEPRECATION")
+    val type = activeNetworkInfo?.takeIf { it.isConnected }?.type ?: return null
+    @Suppress("DEPRECATION")
+    return allNetworks.firstOrNull { getNetworkInfo(it)?.type == type }
+}
 
 data class NetworkStatus(val kind: NetKind = NetKind.Offline, val name: String? = null, val level: Float = 1f)
 
@@ -40,12 +51,12 @@ enum class HomeStatus { Default, Guarded, NotDefault }
 object SystemProbe {
 
     fun network(context: Context): NetworkStatus {
-        val cm = context.getSystemService(ConnectivityManager::class.java) ?: return NetworkStatus()
-        val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return NetworkStatus()
+        val cm = context.getSystemService<ConnectivityManager>() ?: return NetworkStatus()
+        val caps = cm.getNetworkCapabilities(cm.currentNetwork() ?: return NetworkStatus()) ?: return NetworkStatus()
         return when {
             caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetworkStatus(NetKind.Ethernet)
             caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
-                val wm = context.applicationContext.getSystemService(WifiManager::class.java)
+                val wm = context.applicationContext.getSystemService<WifiManager>()
                 @Suppress("DEPRECATION")
                 val info = wm?.connectionInfo
                 val ssid = info?.ssid?.trim('"')?.takeUnless { it.isBlank() || it == WifiManager.UNKNOWN_SSID.trim('<', '>') || it == "<unknown ssid>" }
@@ -62,13 +73,16 @@ object SystemProbe {
     }
 
     fun volume(context: Context): VolumeStatus {
-        val am = context.getSystemService(AudioManager::class.java) ?: return VolumeStatus()
+        val am = context.getSystemService<AudioManager>() ?: return VolumeStatus()
         return VolumeStatus(
             level = am.getStreamVolume(AudioManager.STREAM_MUSIC),
             max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
-            muted = am.isStreamMute(AudioManager.STREAM_MUSIC),
+            muted = if (Build.VERSION.SDK_INT >= 23) am.isStreamMute(AudioManager.STREAM_MUSIC) else legacyMuted,
         )
     }
+
+    /** Android 5.x has no way to read the mute state, so remember what Aerial last set. */
+    private var legacyMuted = false
 
     /**
      * TCL's firmware only pushes a volume change to the amplifier from its own volume UI, which
@@ -78,7 +92,7 @@ object SystemProbe {
         if (isInstalled(context, "com.tcl.settings")) AudioManager.FLAG_SHOW_UI else 0
 
     fun adjustVolume(context: Context, direction: Int) {
-        val am = context.getSystemService(AudioManager::class.java) ?: return
+        val am = context.getSystemService<AudioManager>() ?: return
         am.adjustStreamVolume(
             AudioManager.STREAM_MUSIC,
             if (direction > 0) AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER,
@@ -87,8 +101,14 @@ object SystemProbe {
     }
 
     fun toggleMute(context: Context) {
-        val am = context.getSystemService(AudioManager::class.java) ?: return
-        am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_TOGGLE_MUTE, volumeFlags(context))
+        val am = context.getSystemService<AudioManager>() ?: return
+        if (Build.VERSION.SDK_INT >= 23) {
+            am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_TOGGLE_MUTE, volumeFlags(context))
+        } else {
+            legacyMuted = !legacyMuted
+            @Suppress("DEPRECATION")
+            am.setStreamMute(AudioManager.STREAM_MUSIC, legacyMuted)
+        }
     }
 
     fun homeStatus(context: Context): HomeStatus {
@@ -159,14 +179,14 @@ object SystemProbe {
      * generic passthrough intent has no handler (Xiaomi's China firmware).
      */
     fun sources(context: Context): List<TvSource> {
-        val tim = context.getSystemService(TvInputManager::class.java) ?: return emptyList()
+        val tim = context.getSystemService<TvInputManager>() ?: return emptyList()
         val infos = runCatching { tim.tvInputList }.getOrNull() ?: return emptyList()
         val xiaomi = isInstalled(context, XIAOMI_PLAYER)
         val profile = DeviceProfile.current()
 
         return infos
             .filter { it.parentId == null && (it.isPassthroughInput || it.type == TvInputInfo.TYPE_TUNER) }
-            .filter { runCatching { !it.isHidden(context) }.getOrDefault(true) }
+            .filter { Build.VERSION.SDK_INT < 24 || runCatching { !it.isHidden(context) }.getOrDefault(true) }
             .filter { hw(it.id) !in profile.hiddenHardware }
             .mapNotNull { info ->
                 val kind = when (info.type) {

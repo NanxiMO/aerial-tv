@@ -27,8 +27,18 @@
 | 航拍屏保 | ✅ | ✅（截图截不到视频，字幕正常） |
 | 系统级屏保（Dream） | 不适用（小米不用 Dream） | ✅ |
 | 返回键进入屏保 | ✅ | ✅ |
+| 焦点样式（高对比度白边 / 标准，控制中心与手机页切换） | ✅ 1.9 | 未装 1.9 |
+| 覆盖安装时不打断正在看的信号源 / App | ✅ 1.9（装在 HDMI 播放中） | 未装 1.9 |
 | 屏保里左右键切换上一段/下一段（时钟模式除外，其他键退出） | ✅ 航拍（1.7） | 未测 |
 | 帧率 | 导航时中位数约 18ms | 未测 |
+
+**Android 5.0–7.1 的老电视**（1.9 起 minSdk 21，Compose 降到 1.9.5）：小米上装了这一版回归过（首页、焦点、控制中心、壁纸页和手机页、航拍屏保走 HTTPS 正常）。老系统没有真机，在 Android 5.0.2 模拟器（`aerial21`，arm64）上验证过：桌面、焦点、控制中心（音量、亮度）、壁纸页和二维码、手机配置页、守护版接管 HOME。和新系统的差别：
+
+- 界面字体用系统的 Roboto（Inter 的字重靠可变字体，Android 8.0 才支持）；App 图标用 PNG（自适应图标同理）。
+- 控制中心没有「睡眠」（无障碍的锁屏动作 Android 9 才有）。
+- Android 5.0 上无障碍服务接不到 HOME 键，守护版靠「原桌面一出现就拉回」，会闪一下原桌面。
+- 老系统不信任 Apple 的根证书，航拍视频的 HTTPS 会失败，屏保会自动改用 HTTP（`res/xml/network_security_config.xml` 只对 `sylvan.apple.com` 放行明文）。模拟器的软件解码器只支持 H.264 Baseline，解不了 Apple 的视频，所以航拍画面本身还没在 5.x 上看到过，要等真机。
+- Android 4.4 做不到：Compose 最低要求 Android 5.0。
 
 ## 环境
 
@@ -90,6 +100,7 @@ adb -s $XIAOMI_TV:5555 shell cmd package compile -m speed -f app.orchard.tv
 6. **不要把 `local/` 提交到版本库**（里面有 IP 和签名密钥）。
 7. 改动系统设置前，先记下原值（写进 `local/TVS.md`），并确保 `restore.sh` 能还原。
 8. 每次改完都在真机上验证，不要只看编译通过。电视上的行为和模拟器差别很大。
+9. **不要升级 Compose BOM 到 2025.12 及以后**（Compose 1.10 要求 Android 6.0），也不要升级到要求 minSdk 23 的 AndroidX 版本（比如 `lifecycle` 2.10 起）。升级前看 AAR 里 `AndroidManifest.xml` 的 `minSdkVersion`。
 
 ## 重新生成航拍目录
 
