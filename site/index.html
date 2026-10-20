@@ -92,14 +92,14 @@
     transition: transform .2s var(--ease);
   }
   .compare:hover .knob, .compare:focus-visible .knob { transform: scale(1.08); }
-  .compare .tag {
-    position: absolute; bottom: 16px; padding: 5px 12px; border-radius: 980px; font-size: 13px; font-weight: 600; letter-spacing: .01em;
-    color: #fff; background: rgba(0,0,0,.55); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-    transition: opacity .3s ease;
-  }
-  .compare .tag-after { left: 16px; }
-  .compare .tag-before { right: 16px; }
-  .compare-hint { color: var(--dim); font-size: 14px; margin: 18px 0 0; }
+  .compare-legend { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; margin-top: 18px; }
+  .compare-hint { color: var(--dim); font-size: 14px; }
+  .legend { font-size: 15px; font-weight: 600; color: var(--dim); transition: color .3s ease; }
+  .legend.on { color: var(--text); }
+  .legend-after { text-align: left; padding-left: 4px; }
+  .legend-after::before { content: "← "; color: var(--dim); font-weight: 400; }
+  .legend-before { text-align: right; padding-right: 4px; }
+  .legend-before::after { content: " →"; color: var(--dim); font-weight: 400; }
   .tv .stand { width: 26%; height: 14px; margin: 18px auto 0; border-radius: 0 0 10px 10px; background: linear-gradient(#2a2a2d, #141416); }
   .glow { position: absolute; inset: -10% -20% auto; height: 70%; z-index: -1; filter: blur(80px); opacity: .55;
     background: radial-gradient(40% 50% at 30% 50%, #1f7a6a, transparent 70%), radial-gradient(40% 50% at 70% 40%, #3b2a9c, transparent 70%); }
@@ -210,9 +210,8 @@
     .field .opt { padding: 4px 0 6px; }
     table.adb th { width: auto; display: block; padding-bottom: 4px; border: 0; }
     table.adb td { display: block; padding-top: 0; }
-    .compare .tag { bottom: 8px; font-size: 11px; padding: 3px 9px; }
-    .compare .tag-after { left: 8px; }
-    .compare .tag-before { right: 8px; }
+    .compare-legend { grid-template-columns: 1fr 1fr; row-gap: 6px; }
+    .compare-hint { grid-column: 1 / -1; grid-row: 2; text-align: center; }
     .compare .knob { width: 34px; height: 34px; margin: -17px 0 0 -17px; }
   }
 </style>
@@ -250,12 +249,14 @@
       <div class="screen compare" id="compare" role="slider" tabindex="0" aria-label="厂商桌面与 Aerial 的对比，左右移动查看" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <img class="after" src="img/home.jpg" alt="Aerial 首页：大号时钟、风景壁纸和应用网格" width="1600" height="900">
         <img class="before" src="img/stock-xiaomi.jpg" alt="电视自带的桌面：满屏剧集推荐、会员和限免角标" width="1600" height="900">
-        <span class="tag tag-after">Aerial</span>
-        <span class="tag tag-before">电视自带的桌面</span>
         <div class="divider" aria-hidden="true"><span class="knob"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg></span></div>
       </div>
       <div class="stand"></div>
-      <p class="compare-hint">左右移动鼠标，把电视自带的桌面换成 Aerial</p>
+      <div class="compare-legend">
+        <span class="legend legend-after">Aerial</span>
+        <span class="compare-hint">左右移动鼠标，把电视自带的桌面换成 Aerial</span>
+        <span class="legend legend-before">电视自带的桌面</span>
+      </div>
     </div>
   </div>
 </header>
@@ -523,7 +524,7 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
   (() => {
     const box = $('#compare');
     const hero = document.querySelector('.hero');
-    const tagAfter = box.querySelector('.tag-after'), tagBefore = box.querySelector('.tag-before');
+    const legendAfter = document.querySelector('.legend-after'), legendBefore = document.querySelector('.legend-before');
     const divider = box.querySelector('.divider');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let x = 0, target = 0, raf = 0, touched = false;
@@ -531,8 +532,9 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
       x = v;
       box.style.setProperty('--x', (x * 100).toFixed(2) + '%');
       box.setAttribute('aria-valuenow', Math.round(x * 100));
-      tagAfter.style.opacity = x > 0.18 ? 1 : 0;
-      tagBefore.style.opacity = x < 0.82 ? 1 : 0;
+      // The side that holds more of the screen lights up its label.
+      legendAfter.classList.toggle('on', x >= 0.5);
+      legendBefore.classList.toggle('on', x < 0.5);
       // At either end the line and its knob would hang half off the screen; let them go.
       divider.style.opacity = x > 0.03 && x < 0.97 ? 1 : 0;
     };
