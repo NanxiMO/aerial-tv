@@ -7,7 +7,7 @@
 <meta name="description" content="Aerial 是参照 tvOS 设计的开源 Android TV 桌面。没有广告，没有推荐流，只有你的 App、你的壁纸和航拍屏保。支持小米、TCL 等国内电视，开机自动接管。">
 <meta property="og:title" content="Aerial · 给国产电视的一块干净桌面">
 <meta property="og:description" content="参照 tvOS 设计的开源电视桌面，没有广告，开机自动接管。">
-<meta property="og:image" content="img/home.jpg">
+<meta property="og:image" content="img/home.jpg?v=3">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
@@ -92,23 +92,16 @@
     transition: transform .2s var(--ease);
   }
   .compare:hover .knob, .compare:focus-visible .knob { transform: scale(1.08); }
-  .compare-legend { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; }
-  .compare-legend button {
-    white-space: nowrap; appearance: none; font: inherit; cursor: pointer; border-radius: 980px;
-    transition: color .3s ease, background .3s ease, border-color .3s ease, transform .15s var(--ease);
-  }
-  .compare-legend button:active { transform: scale(.96); }
-  .legend { font-size: 15px; font-weight: 600; color: var(--dim); background: transparent; border: 1px solid transparent; padding: 7px 14px; }
-  .legend:hover { color: var(--muted); }
-  .legend.on { color: var(--text); background: var(--card); border-color: var(--line); }
-  .legend-after::before { content: "← "; font-weight: 400; color: var(--dim); }
-  .legend-before::after { content: " →"; font-weight: 400; color: var(--dim); }
+  .compare-legend { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 22px; }
   .replay {
-    display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted);
-    background: transparent; border: 1px solid var(--line); padding: 6px 12px;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; appearance: none; font: inherit; cursor: pointer;
+    font-size: 14px; font-weight: 500; color: var(--muted); background: transparent; border: 1px solid var(--line);
+    border-radius: 980px; padding: 7px 16px; transition: color .2s ease, border-color .2s ease, transform .15s var(--ease);
   }
   .replay:hover { color: var(--text); border-color: rgba(255,255,255,.22); }
-  .compare-hint { color: var(--dim); font-size: 13px; margin: 10px 0 0; }
+  .replay:active { transform: scale(.96); }
+  .compare-hint { color: var(--dim); font-size: 13px; }
+  @media (hover: none) { .compare-hint { display: none; } }
   .tv .stand { width: 26%; height: 14px; margin: 18px auto 0; border-radius: 0 0 10px 10px; background: linear-gradient(#2a2a2d, #141416); }
   .glow { position: absolute; inset: -10% -20% auto; height: 70%; z-index: -1; filter: blur(80px); opacity: .55;
     background: radial-gradient(40% 50% at 30% 50%, #1f7a6a, transparent 70%), radial-gradient(40% 50% at 70% 40%, #3b2a9c, transparent 70%); }
@@ -222,10 +215,7 @@
     .field .opt { padding: 4px 0 6px; }
     table.adb th { width: auto; display: block; padding-bottom: 4px; border: 0; }
     table.adb td { display: block; padding-top: 0; }
-    .compare-legend { gap: 6px; }
-    .legend { font-size: 13px; padding: 6px 10px; }
-    .legend-after::before, .legend-before::after { content: none; }
-    .replay { font-size: 12px; padding: 5px 9px; }
+    .compare-legend { margin-top: 18px; }
     .compare .knob { width: 34px; height: 34px; margin: -17px 0 0 -17px; }
   }
 </style>
@@ -261,17 +251,15 @@
     <div class="tv reveal">
       <div class="glow"></div>
       <div class="screen compare" id="compare" role="slider" tabindex="0" aria-label="厂商桌面与 Aerial 的对比，左右移动查看" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-        <img class="after" src="img/home.jpg" alt="Aerial 首页：大号时钟、风景壁纸和应用网格" width="1600" height="900">
-        <img class="before" src="img/stock-xiaomi.jpg" alt="电视自带的桌面：满屏剧集推荐、会员和限免角标" width="1600" height="900">
+        <img class="after" src="img/home.jpg?v=3" alt="Aerial 首页：大号时钟、风景壁纸和应用网格" width="1600" height="900">
+        <img class="before" src="img/stock-xiaomi.jpg?v=3" alt="电视自带的桌面：满屏剧集推荐、会员和限免角标" width="1600" height="900">
         <div class="divider" aria-hidden="true"><span class="knob"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg></span></div>
       </div>
       <div class="stand"></div>
       <div class="compare-legend">
-        <button type="button" class="legend legend-after">Aerial</button>
         <button type="button" class="replay"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/></svg>再看一遍</button>
-        <button type="button" class="legend legend-before">电视自带的桌面</button>
+        <span class="compare-hint">在画面上左右移动鼠标对比</span>
       </div>
-      <p class="compare-hint">在画面上左右移动鼠标，或点上面的按钮切换</p>
     </div>
   </div>
 </header>
@@ -284,7 +272,7 @@
     </div>
 
     <div class="feature reveal">
-      <div class="shot"><img src="img/focus.jpg" alt="聚焦在 Netflix 上的应用网格" loading="lazy" width="1600" height="900"></div>
+      <div class="shot"><img src="img/focus.jpg?v=3" alt="聚焦在 Netflix 上的应用网格" loading="lazy" width="1600" height="900"></div>
       <div>
         <p class="kicker">首页</p>
         <h3>每个 App，<br>都有它该有的样子。</h3>
@@ -294,7 +282,7 @@
     </div>
 
     <div class="feature flip reveal">
-      <div class="shot"><img src="img/menu.jpg" alt="长按菜单：移动、隐藏、应用信息、卸载" loading="lazy" width="1600" height="900"></div>
+      <div class="shot"><img src="img/menu.jpg?v=3" alt="长按菜单：移动、隐藏、应用信息、卸载" loading="lazy" width="1600" height="900"></div>
       <div>
         <p class="kicker">整理</p>
         <h3>长按一下，<br>想怎么排就怎么排。</h3>
@@ -303,7 +291,7 @@
     </div>
 
     <div class="feature reveal">
-      <div class="shot"><img src="img/control-center.jpg" alt="控制中心：信号源、网络、设置、睡眠、音量和亮度" loading="lazy" width="1600" height="900"></div>
+      <div class="shot"><img src="img/control-center.jpg?v=3" alt="控制中心：信号源、网络、设置、睡眠、音量和亮度" loading="lazy" width="1600" height="900"></div>
       <div>
         <p class="kicker">控制中心</p>
         <h3>常用的开关，<br>按一下菜单键就到。</h3>
@@ -321,11 +309,11 @@
     </div>
     <div class="gallery reveal">
       <figure>
-        <div class="shot"><img src="img/screensaver-aerial.jpg" alt="航拍屏保：俯瞰美国优胜美地国家公园" loading="lazy" width="1600" height="900"></div>
+        <div class="shot"><img src="img/screensaver-aerial.jpg?v=3" alt="航拍屏保：俯瞰美国优胜美地国家公园" loading="lazy" width="1600" height="900"></div>
         <figcaption>航拍：俯瞰美国优胜美地国家公园</figcaption>
       </figure>
       <figure>
-        <div class="shot"><img src="img/screensaver-aerial-2.jpg" alt="航拍屏保：洛杉矶好莱坞标志" loading="lazy" width="1600" height="900"></div>
+        <div class="shot"><img src="img/screensaver-aerial-2.jpg?v=3" alt="航拍屏保：洛杉矶好莱坞标志" loading="lazy" width="1600" height="900"></div>
         <figcaption>航拍：洛杉矶好莱坞标志</figcaption>
       </figure>
     </div>
@@ -335,7 +323,7 @@
 <section>
   <div class="wrap">
     <div class="feature reveal">
-      <div class="shot"><img src="img/wallpaper.jpg" alt="壁纸与屏保面板" loading="lazy" width="1600" height="900"></div>
+      <div class="shot"><img src="img/wallpaper.jpg?v=3" alt="壁纸与屏保面板" loading="lazy" width="1600" height="900"></div>
       <div>
         <p class="kicker">壁纸</p>
         <h3>每天一张新风景，<br>或者你自己的照片。</h3>
@@ -348,7 +336,7 @@
         <h3 style="font-size:clamp(28px,3.4vw,40px);line-height:1.12;letter-spacing:-.025em;margin:0 0 16px">扫一下，<br>不用遥控器打字。</h3>
         <p style="color:var(--muted)">扫描壁纸面板上的二维码，手机上会打开一个原生风格的页面：上传照片、挑选壁纸、切换屏保。页面只在面板打开时开放，地址带随机令牌，同一网络里的其他设备猜不到。</p>
       </div>
-      <div class="phone"><img src="img/phone.jpg" alt="手机上的壁纸与屏保设置页" loading="lazy" width="780" height="1520"></div>
+      <div class="phone"><img src="img/phone.jpg?v=3" alt="手机上的壁纸与屏保设置页" loading="lazy" width="780" height="1520"></div>
     </div>
   </div>
 </section>
@@ -538,7 +526,6 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
   // follows the pointer while it is over the TV, eased so it glides rather than jumps.
   (() => {
     const box = $('#compare');
-    const legendAfter = document.querySelector('.legend-after'), legendBefore = document.querySelector('.legend-before');
     const divider = box.querySelector('.divider');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let x = 0, target = 0, raf = 0, touched = false;
@@ -546,9 +533,6 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
       x = v;
       box.style.setProperty('--x', (x * 100).toFixed(2) + '%');
       box.setAttribute('aria-valuenow', Math.round(x * 100));
-      // The side that holds more of the screen lights up its label.
-      legendAfter.classList.toggle('on', x >= 0.5);
-      legendBefore.classList.toggle('on', x < 0.5);
       // At either end the line and its knob would hang half off the screen; let them go.
       divider.style.opacity = x > 0.03 && x < 0.97 ? 1 : 0;
     };
@@ -594,8 +578,6 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
     box.addEventListener('keydown', e => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); tween++; touched = true; go(target + (e.key === 'ArrowRight' ? 0.1 : -0.1)); }
     });
-    legendAfter.addEventListener('click', () => { touched = true; wipe(1, 1200); });
-    legendBefore.addEventListener('click', () => { touched = true; wipe(0, 1200); });
     $('.replay').addEventListener('click', () => {
       touched = true;
       if (reduced) { set(0); setTimeout(() => set(1), 600); return; }
@@ -603,7 +585,6 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
       setTimeout(() => wipe(1, 2200), 750);
     });
 
-    if (matchMedia('(hover: none)').matches) $('.compare-hint').textContent = '点上面的按钮切换，也可以左右拖动';
     set(0);
     // The opening wipe takes the TV's launcher away and rests on Aerial.
     if (reduced) { set(1); return; }

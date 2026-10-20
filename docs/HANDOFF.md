@@ -67,7 +67,7 @@ adb -s $XIAOMI_TV:5555 shell cmd package compile -m speed -f app.orchard.tv
    cp app/build/outputs/apk/guard/release/app-guard-release.apk /tmp/aerial-guard.apk
    gh release create vX.Y /tmp/aerial-standard.apk /tmp/aerial-guard.apk --title "Aerial X.Y" --notes "..."
    ```
-4. 官网 `site/` 是 Cloudflare Worker 静态资源（配置见 `wrangler.jsonc`），绑定在 https://aerial.qust.me 和 https://tv.qust.me。改完官网运行 `npx wrangler@4 deploy`。`site/_redirects` 会把 `/install.sh` 跳转到 GitHub 上的 `tools/get.sh`，把 `/download/standard`、`/download/guard` 跳转到最新 APK。
+4. 官网 `site/` 是 Cloudflare Worker 静态资源（配置见 `wrangler.jsonc`），绑定在 https://aerial.qust.me 和 https://tv.qust.me。改完官网运行 `npx wrangler@4 deploy`。`site/_headers` 让图片在浏览器里缓存 7 天，所以替换截图时要把 `index.html` 里图片地址的 `?v=` 加 1，否则用户看到的还是旧图。`site/_redirects` 会把 `/install.sh` 跳转到 GitHub 上的 `tools/get.sh`，把 `/download/standard`、`/download/guard` 跳转到最新 APK。
 
 ## 调试技巧
 
