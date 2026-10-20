@@ -172,13 +172,13 @@ class HomeGuardService : AccessibilityService() {
             .mapValues { it.value.toSet() }
     }
 
+    /**
+     * Brings Aerial's one task to the front. No CATEGORY_HOME: on firmwares where Aerial is not the
+     * system Home, that category made the system open a second, home-type task with a fresh
+     * MainActivity every time, which lost the focused tile (Xiaomi MiTV-MFTR0, 1.11).
+     */
     private fun goHome() {
-        startActivity(
-            Intent(this, MainActivity::class.java)
-                .setAction(Intent.ACTION_MAIN)
-                .addCategory(Intent.CATEGORY_HOME)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED),
-        )
+        startActivity(MainActivity.bringBackIntent(this))
     }
 
     companion object {

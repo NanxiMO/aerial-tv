@@ -107,6 +107,9 @@ class MainActivity : ComponentActivity() {
     private val releaseScreen = Runnable { window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     private var swallowKeyUp = -1
 
+    /** An app (or the stock launcher) was opened from the grid and Home has not been pressed since. */
+    private var openedAppSinceHome = false
+
     private fun restartIdleTimer() {
         idleHandler.removeCallbacks(showScreensaver)
         idleHandler.postDelayed(showScreensaver, IDLE_BEFORE_SCREENSAVER_MS)
@@ -141,7 +144,12 @@ class MainActivity : ComponentActivity() {
             idleHandler.post { showScreensaver.run() }
             return
         }
-        if (intent.hasCategory(Intent.CATEGORY_HOME) || intent.action == Intent.ACTION_MAIN) vm.onHomePressed()
+        if (intent.hasCategory(Intent.CATEGORY_HOME) || intent.action == Intent.ACTION_MAIN) {
+            // Since 1.11 Home Guard answers Home from an app by bringing Aerial back with this same
+            // intent, so the intent alone cannot tell Home-on-Home from coming back from an app.
+            vm.onHomePressed(resetFocus = !openedAppSinceHome)
+            openedAppSinceHome = false
+        }
     }
 
     override fun onStart() {
@@ -178,6 +186,9 @@ class MainActivity : ComponentActivity() {
         restartIdleTimer()
         HomeGuardService.onAerialResumed()
         vm.refreshSystem()
+        // Back in front by any route (Home was handled in onNewIntent, which runs first; Back from
+        // the app lands here directly), so the next Home press is a Home-on-Home again.
+        openedAppSinceHome = false
     }
 
     override fun onPause() {
@@ -195,6 +206,7 @@ class MainActivity : ComponentActivity() {
 
     /** Opens an app, growing it out of its tile. */
     private fun launch(app: AppEntry, bounds: Rect?) {
+        openedAppSinceHome = true
         // The stock launcher (Xiaomi's PatchWall, with the maker's own iQIYI / Mango content) can
         // only be opened through the system Home action; see HomeGuardService.openStockLauncher.
         if (HomeGuardService.isStockHome(app.packageName) && HomeGuardService.openStockLauncher()) return
@@ -218,7 +230,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private companion object {
+    companion object {
+        /** How Home Guard and the boot receiver bring Aerial back: the same task the launcher entry uses. */
+        fun bringBackIntent(context: Context): Intent =
+            Intent(context, MainActivity::class.java)
+                .setAction(Intent.ACTION_MAIN)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+
         const val IDLE_BEFORE_SCREENSAVER_MS = 5 * 60 * 1000L
         const val SCREENSAVER_HOLD_MS = 4 * 60 * 60 * 1000L
 

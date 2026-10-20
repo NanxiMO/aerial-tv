@@ -137,10 +137,14 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
     fun endMove() { movingKey = null }
 
-    fun onHomePressed() {
+    /**
+     * Home was pressed. On Home itself focus goes back to the top row, as on tvOS; coming back
+     * from an app opened from the grid, focus stays on that app's tile.
+     */
+    fun onHomePressed(resetFocus: Boolean = true) {
         screensaverVisible = false
         overlay = Overlay.None
         movingKey = null
-        homeResetPending = true
+        if (resetFocus) homeResetPending = true
     }
 }

@@ -22,6 +22,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -218,6 +221,8 @@ fun HiddenAppsSheet(
             Column(
                 Modifier
                     .width(660.dp)
+                    // The canvas is 540 dp tall: past three rows the grid scrolls inside the sheet.
+                    .heightIn(max = 480.dp)
                     .clip(RoundedCornerShape(28.dp))
                     .background(Palette.Glass)
                     .border(1.dp, Palette.Hairline, RoundedCornerShape(28.dp))
@@ -228,6 +233,14 @@ fun HiddenAppsSheet(
                     stringResource(if (apps.isEmpty()) R.string.hidden_empty else R.string.hidden_hint),
                     style = Type.Callout, modifier = Modifier.padding(top = 4.dp, bottom = 20.dp),
                 )
+                // Focus moving to a row out of view scrolls it in (Compose brings focused items into view).
+                Column(
+                    Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState())
+                        // Room for the focused tile's 1.1x scale, so the edge rows are not clipped.
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                ) {
                 apps.chunked(4).forEachIndexed { r, row ->
                     Row(horizontalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.padding(bottom = 18.dp)) {
                         row.forEachIndexed { c, app ->
@@ -248,6 +261,7 @@ fun HiddenAppsSheet(
                             }
                         }
                     }
+                }
                 }
             }
         }

@@ -20,12 +20,7 @@ class BootReceiver : BroadcastReceiver() {
         )?.activityInfo?.packageName
         if (home == context.packageName) return
         runCatching {
-            context.startActivity(
-                Intent(context, MainActivity::class.java)
-                    .setAction(Intent.ACTION_MAIN)
-                    .addCategory(Intent.CATEGORY_HOME)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-            )
+            context.startActivity(MainActivity.bringBackIntent(context))
         }
     }
 }
