@@ -556,13 +556,9 @@ adb shell am start -n app.orchard.tv/.MainActivity`;
 
     if (matchMedia('(hover: none)').matches) $('.compare-hint').textContent = '左右拖动，把电视自带的桌面换成 Aerial';
     set(0);
-    // A first sweep shows what the slider does; it gives way as soon as someone moves the pointer.
-    if (reduced) { set(0.5); return; }
-    const start = () => setTimeout(() => {
-      if (touched) return;
-      go(1);
-      setTimeout(() => { if (!touched) go(0.5); }, 1500);
-    }, 700);
+    // A first sweep wipes the TV's launcher away and rests on Aerial; it gives way as soon as someone moves the pointer.
+    if (reduced) { set(1); return; }
+    const start = () => setTimeout(() => { if (!touched) go(1); }, 700);
     const seen = new IntersectionObserver(es => { if (es[0].isIntersecting) { seen.disconnect(); start(); } }, { threshold: 0.5 });
     seen.observe(box);
   })();
