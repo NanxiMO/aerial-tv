@@ -14,6 +14,7 @@ import app.orchard.tv.MainActivity
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         GuardSetup.ensureEnabled(context)
+        if (intent.action == Intent.ACTION_LOCKED_BOOT_COMPLETED) return
         val home = context.packageManager.resolveActivity(
             Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),
             PackageManager.MATCH_DEFAULT_ONLY,

@@ -59,6 +59,7 @@
 
         <receiver
             android:name=".guard.BootReceiver"
+            android:directBootAware="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -88,6 +89,7 @@
 
         <service
             android:name=".guard.RevivalListener"
+            android:directBootAware="true"
             android:label="@string/guard_name"
             android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
@@ -98,6 +100,7 @@
 
         <service
             android:name=".guard.HomeGuardService"
+            android:directBootAware="true"
             android:label="@string/guard_name"
             android:exported="true"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">

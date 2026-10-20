@@ -4,9 +4,11 @@ import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.os.UserManager
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import android.util.Log
@@ -44,8 +46,16 @@ object GuardSetup {
         if (keep) ensureAdb(context)
     }
 
+    /**
+     * Home Guard is bound before the user is unlocked (Direct Boot). Until then the preferences
+     * below, in credential storage, cannot be read; the guard catches up on unlock.
+     */
+    fun isUserUnlocked(context: Context): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.N ||
+            context.getSystemService(UserManager::class.java).isUserUnlocked
+
     fun ensureAdb(context: Context) {
-        if (!keepAdb(context)) return
+        if (!isUserUnlocked(context) || !keepAdb(context)) return
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return
         val resolver = context.contentResolver
         if (Settings.Global.getInt(resolver, Settings.Global.ADB_ENABLED, 0) == 1) return
@@ -90,6 +100,7 @@ object GuardSetup {
     }
 
     private fun keepScreensaver(context: Context) {
+        if (!isUserUnlocked(context)) return
         val resolver = context.contentResolver
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val key = "screensaver_components"
