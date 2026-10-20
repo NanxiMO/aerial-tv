@@ -18,6 +18,10 @@
 
 ![Aerial 首页](site/img/home.jpg)
 
+| 电视自带的桌面 | 换上 Aerial 之后 |
+|:---:|:---:|
+| <img src="site/img/stock-xiaomi.jpg" alt="电视自带的桌面：满屏剧集推荐、会员和限免角标"> | <img src="site/img/home.jpg" alt="Aerial 首页"> |
+
 </div>
 
 ## 功能
