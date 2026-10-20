@@ -20,7 +20,7 @@
 
 - `cmd role add-role-holder` / `cmd package set-home-activity` 都不报错，但 `resolve-activity` 仍然返回 `com.mitv.tvhome/.MainActivityUserMode`，和 MFTR0 一样。
 - `install.sh` 因此转用桌面守护。装上后追加 `HomeGuardService`，原有的 `com.xiaomi.voicecontrol/com.xiaomi.voicecontrol.VoiceAccessibilityService`（小爱）留在列表里，没有被覆盖。
-- 用 `adb shell input keyevent KEYCODE_HOME` 注入 HOME 键，3 秒后前台仍是 `app.orchard.tv/.MainActivity`。实体遥控器未单独测试。
+- 用 `adb shell input keyevent KEYCODE_HOME` 注入的 HOME 不经过无障碍，**不能用来判断守护是否生效**：同源固件的 MFTR0 上注入 HOME 会停在 PatchWall，而实体遥控器回到 Aerial（见 PR #9 的讨论）。只有实体遥控器的结果算数，这台还没测。不依赖按键的替代检查：Aerial 在前台时执行 `am start -n com.mitv.tvhome/.MainActivityUserMode`，前台应该很快回到 Aerial。
 
 ## 开机自启
 
@@ -36,6 +36,8 @@
 
 - `screensaver_enabled=0`，`screensaver_components=null`，和 MFTR0 一样走小米自己的屏保（不是 Android 标准 Dream）。
 - 所以 `install.sh` 不会改写屏保设置，Aerial 靠桌面空闲时自己启动屏保。
+- 小米自己的屏保等待时间在 `system screen_saver_timeout`（有的机器是 120000，即 2 分钟，比 Aerial 原来的 5 分钟早，广告屏保会抢先）。1.14 起 Aerial 会读这个值，比它早 15 秒启动自己的屏保。
+- 不要把 `screensaver_components` 改成 AerialDream：小米掐掉了标准 Dream 通道，实测会黑屏并进入待机（PR #9 评论）。
 
 ## 信号源
 
@@ -52,8 +54,8 @@
 ## 安装记录
 
 ```bash
-adb connect 192.168.31.126:5555
-curl -fsSL https://aerial.qust.me/install.sh | KEEP_ADB=1 TV=192.168.31.126 bash
+adb connect <电视IP>:5555
+curl -fsSL https://aerial.qust.me/install.sh | KEEP_ADB=1 TV=<电视IP> bash
 ```
 
 输出：

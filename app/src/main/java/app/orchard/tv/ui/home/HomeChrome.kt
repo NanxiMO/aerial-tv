@@ -58,7 +58,10 @@ fun rememberNow(): State<LocalDateTime> = produceState(LocalDateTime.now()) {
 @Composable
 fun timeText(now: LocalDateTime): String {
     val context = LocalContext.current
-    val pattern = if (DateFormat.is24HourFormat(context)) "H:mm" else "h:mm"
+    // 24-hour unless the owner chose 12-hour. With the setting unset, Android falls back to the
+    // locale, and zh_CN means 12-hour, which TV clocks here never show (TCL 65S515D, issue #15).
+    val twelve = runCatching { android.provider.Settings.System.getString(context.contentResolver, android.provider.Settings.System.TIME_12_24) }.getOrNull() == "12"
+    val pattern = if (twelve) "h:mm" else "H:mm"
     return now.format(DateTimeFormatter.ofPattern(pattern))
 }
 

@@ -74,7 +74,8 @@ class HomeGuardService : AccessibilityService() {
         // Not after an update, though: installing over Aerial also kills it, and whoever is watching
         // an input or another app at that moment must not be pulled back to Home.
         val revived = SystemClock.elapsedRealtime() - GuardSetup.lastRevivedAt < 60_000 && !justUpdated()
-        if ((SystemClock.elapsedRealtime() < BOOT_WINDOW_MS || revived) && !isDefaultHome() &&
+        // Revived with the screen off (standby): the screen-on check takes over at wake.
+        if ((SystemClock.elapsedRealtime() < BOOT_WINDOW_MS && !isDefaultHome() || revived) &&
             getSystemService<PowerManager>()?.isInteractive == true
         ) {
             Log.i(TAG, if (revived) "re-enabled after being switched off; taking over Home" else "bound shortly after boot; taking over Home")
@@ -86,8 +87,12 @@ class HomeGuardService : AccessibilityService() {
         System.currentTimeMillis() - packageManager.getPackageInfo(packageName, 0).lastUpdateTime < 2 * 60_000
     }.getOrDefault(false)
 
+    /**
+     * Also when Aerial is the default Home: that only steers the HOME intent. Xiaomi MiTV-ANSP0
+     * (Android 9) accepts set-home-activity, yet when standby force-stops Aerial, PatchWall's old
+     * task is simply uncovered and stays in front after wake (issue #6).
+     */
     private fun takeOverIfStockHomeInFront(reason: String) {
-        if (isDefaultHome()) return
         val last = lastWindow
         // Unknown means we were only just bound, which happens after a standby kill.
         val stockInFront = last == null || last.second in (stockHomes[last.first] ?: emptySet())
@@ -141,7 +146,8 @@ class HomeGuardService : AccessibilityService() {
         if (pkg in stockHomes) {
             filterKeys(allowed)
             // Only the stock launcher's home activity itself, not its dialogs or other screens.
-            if (cls !in stockHomes.getValue(pkg) || allowed || isDefaultHome()) return
+            // Not gated on isDefaultHome(): see takeOverIfStockHomeInFront.
+            if (cls !in stockHomes.getValue(pkg) || allowed) return
             Log.i(TAG, "stock home $pkg came to the front; bringing Aerial back")
             goHome()
             return

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import app.orchard.tv.system.TvSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -90,6 +91,22 @@ object AppCatalog {
         }
     }
 
+    /**
+     * Before Android 8 there are no adaptive icons, and loadIcon picks the density bucket of the
+     * screen: 96 px at 320 dpi, stretched to the 198 px tile it looks soft (Xiaomi MiTV4-ANSM0,
+     * Android 6, issue #17). Ask for the densest bucket the app ships instead.
+     */
+    private fun bestIcon(pm: PackageManager, info: ActivityInfo): android.graphics.drawable.Drawable {
+        if (Build.VERSION.SDK_INT < 26) {
+            val res = info.iconResource
+            if (res != 0) runCatching {
+                pm.getResourcesForApplication(info.applicationInfo)
+                    .getDrawableForDensity(res, android.util.DisplayMetrics.DENSITY_XXXHIGH, null)
+            }.getOrNull()?.let { return it }
+        }
+        return info.loadIcon(pm)
+    }
+
     private fun entry(pm: PackageManager, info: ActivityInfo, leanback: Boolean): AppEntry {
         val pkg = info.packageName
         val stamp = runCatching { pm.getPackageInfo(pkg, 0).lastUpdateTime }.getOrDefault(0L)
@@ -104,7 +121,7 @@ object AppCatalog {
             // Banner first: it is the artwork the app designed for a TV. ActivityInfo falls back
             // to the application's banner by itself.
             val banner = if (leanback) runCatching { info.loadBanner(pm) }.getOrNull() else null
-            art = if (banner != null) TileArtFactory.fromBanner(banner) else TileArtFactory.fromIcon(info.loadIcon(pm))
+            art = if (banner != null) TileArtFactory.fromBanner(banner) else TileArtFactory.fromIcon(bestIcon(pm, info))
             synchronized(cache) { cache[pkg] = Cached(stamp, label, art) }
         }
         val removable = (info.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM) == 0

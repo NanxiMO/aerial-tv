@@ -112,7 +112,18 @@ class MainActivity : ComponentActivity() {
 
     private fun restartIdleTimer() {
         idleHandler.removeCallbacks(showScreensaver)
-        idleHandler.postDelayed(showScreensaver, IDLE_BEFORE_SCREENSAVER_MS)
+        idleHandler.postDelayed(showScreensaver, idleBeforeScreensaver())
+    }
+
+    /**
+     * Aerial's screensaver has to start before the firmware's (ad-carrying) one. Xiaomi keeps its
+     * delay in system/screen_saver_timeout: 120000 on some MiTV-MFTR0 units, 480000 on others, -1
+     * when off. Start 15 s ahead of it when it is shorter than our default.
+     */
+    private fun idleBeforeScreensaver(): Long {
+        val firmware = runCatching { Settings.System.getLong(contentResolver, "screen_saver_timeout") }.getOrNull()
+        return if (firmware != null && firmware > 0) minOf(IDLE_BEFORE_SCREENSAVER_MS, maxOf(30_000L, firmware - 15_000L))
+        else IDLE_BEFORE_SCREENSAVER_MS
     }
 
     private fun hideScreensaver() {
