@@ -195,7 +195,9 @@ class MainActivity : ComponentActivity() {
 
     /** Opens an app, growing it out of its tile. */
     private fun launch(app: AppEntry, bounds: Rect?) {
-        HomeGuardService.allowStockLauncher(app.packageName)
+        // The stock launcher (Xiaomi's PatchWall, with the maker's own iQIYI / Mango content) can
+        // only be opened through the system Home action; see HomeGuardService.openStockLauncher.
+        if (HomeGuardService.isStockHome(app.packageName) && HomeGuardService.openStockLauncher()) return
         val options = bounds?.let {
             ActivityOptions.makeScaleUpAnimation(
                 window.decorView, it.left.toInt(), it.top.toInt(), it.width.toInt(), it.height.toInt(),

@@ -351,7 +351,7 @@
       <div class="tile">
         <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></div>
         <h4>接管 HOME 键</h4>
-        <p>先正常申请默认桌面；固件不让时，由桌面守护在系统之前接住 HOME 键，官方桌面一出现就把 Aerial 拉回来。</p>
+        <p>先正常申请默认桌面；固件不让时，由桌面守护接管：官方桌面一出现就把 Aerial 拉回来。电视自带的内容，从「桌面」磁贴随时进得去。</p>
       </div>
       <div class="tile">
         <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M3 12h4M17 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></div>
@@ -417,7 +417,7 @@
       <h3 style="font-size:28px;letter-spacing:-.02em;margin:0 0 8px">打开电视的 ADB 调试</h3>
       <p style="color:var(--muted);margin:0 0 18px">电脑第一次连接时，电视上会弹出「允许 USB 调试吗？」，选「允许」并勾上「始终允许」。</p>
       <table class="adb">
-        <tr><th>小米 / Redmi</th><td>设置 → 账号与安全 → <b>ADB 调试</b> 打开；同一页的 <b>安装未知来源的应用</b> 也打开。</td></tr>
+        <tr><th>小米 / Redmi</th><td>① 先打开开发者模式：设置 → 关于 → <b>产品型号</b>，连续按遥控器确认键，直到提示「您已处于开发者模式」。② 再到 设置 → 账号与安全，打开 <b>ADB 调试</b>，同一页的 <b>安装未知来源的应用</b> 也打开。</td></tr>
         <tr><th>TCL / 雷鸟</th><td>设置 → 关于 → <b>本机信息</b>，进入后在遥控器上依次按 <b>上、下、左、右</b>（每次间隔不超过 1 秒），页面底部会出现隐藏的「更多」分组，选中 <b>ADB</b> 按确认打开。</td></tr>
         <tr><th>Android TV / Google TV、海信等</th><td>设置 → 设备偏好设置 → 关于 → 连续按 <b>版本号</b> 7 次打开开发者选项；再到 开发者选项 → <b>USB 调试</b>（也可能叫「网络调试」或「ADB 调试」）。</td></tr>
       </table>
@@ -439,7 +439,7 @@
       </details>
       <details>
         <summary>需要哪些权限，用来做什么？</summary>
-        <p><code>WRITE_SECURE_SETTINGS</code> 用来在守护服务被系统关闭后重新打开它；通知监听用于被杀或开机后由系统拉起（不读取任何通知）；无障碍服务只用来接住 HOME 键，不读取屏幕内容；定位只用来显示 Wi-Fi 名称。</p>
+        <p><code>WRITE_SECURE_SETTINGS</code> 用来在守护服务被系统关闭后重新打开它；通知监听用于被杀或开机后由系统拉起（不读取任何通知）；无障碍服务只看「哪个窗口到了前台」，不读取屏幕内容，平时也不碰遥控器按键；定位只用来显示 Wi-Fi 名称。</p>
       </details>
       <details>
         <summary>航拍影片从哪里来？要多少流量？</summary>

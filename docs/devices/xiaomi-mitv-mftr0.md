@@ -11,7 +11,11 @@
 - `cmd role add-role-holder android.app.role.HOME app.orchard.tv` 和 `cmd package set-home-activity` 都返回成功，但 `resolve-activity` 仍然返回 `com.mitv.tvhome`。
 - 原因：`com.android.server.pm.MitvSettings.isThirdpartyHomeAllowed(pkg)` → `isAppInWhitelistWithFlag(pkg, 4)`。白名单来自 `/data/system/mitv_features.xml` 和 `persist.appcontrol_*` 属性，只有系统进程能写。
 - **不要停用 `com.mitv.tvhome`**：停用后 HOME 解析到 FallbackHome，而 FallbackHome 也不认第三方 HOME，会一直黑屏并刷日志「User unlocked but no home」。实测过，之后已立即 `pm enable` 还原。
-- 解决办法：桌面守护（无障碍）。实体遥控器的 HOME 键会被 `onKeyEvent` 在系统处理前拦下，不会闪出原桌面。
+- 解决办法：桌面守护（无障碍）。原桌面一到前台就切回 Aerial；按 HOME 时实测从按下到 Aerial 显示约 0.5 秒，中间会闪一下原桌面。
+- 1.11 之前守护服务一直开着按键过滤（`flagRequestFilterKeyEvents`），在系统之前拦 HOME，不闪原桌面。但这样所有按键都要先绕道 Aerial，用户反馈云视听小电视里按一次遥控器移动两格，卸载 Aerial 就好。现在只在用户从「桌面」磁贴主动进入原桌面时才开过滤（`HomeGuardService.filterKeys`），回到 Aerial 或打开别的 App 就关掉。用 `dumpsys accessibility` 看：平时没有 `A11yInputFilter`，在原桌面里是 `[KeyboardInterceptor]`。
+- `adb shell input keyevent KEYCODE_HOME` 注入的按键不经过无障碍的按键过滤，测「原桌面里按 HOME 回到 Aerial」必须用实体遥控器。
+- 原桌面的 Activity 要求签名权限 `com.mitv.tvhome.permission.HOME_STATE`，App 和 adb shell 都启动不了。「桌面」磁贴改用无障碍的 `performGlobalAction(GLOBAL_ACTION_HOME)` 打开它，并暂时放行（`HomeGuardService.openStockLauncher`）；从原桌面打开别的 App 后放行结束。
+- 开 ADB：先在 设置 → 关于 → 产品型号 上连续按确认键，提示「您已处于开发者模式」后，设置 → 账号与安全 里才有「ADB 调试」。
 
 ## 待机会强制停止第三方 App
 
