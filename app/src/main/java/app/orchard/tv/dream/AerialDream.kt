@@ -76,7 +76,12 @@ class AerialDream : DreamService(), LifecycleOwner, SavedStateRegistryOwner {
     }
 
     override fun onDreamingStopped() {
-        registry.currentState = Lifecycle.State.CREATED
+        // onDetachedFromWindow can run before this callback; the registry must not go
+        // DESTROYED -> CREATED (it throws and takes the whole process down, which used to
+        // wedge this TV's standby wake).
+        if (registry.currentState != Lifecycle.State.DESTROYED) {
+            registry.currentState = Lifecycle.State.CREATED
+        }
         super.onDreamingStopped()
     }
 
