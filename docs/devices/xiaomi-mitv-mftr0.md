@@ -55,6 +55,11 @@
 
 其余有 MAIN 但没有桌面分类的（`mitv.mivideoplayer`、`mitv.upgrade`、`xm.webcontent`、`mi_connect_service` 等）是播放器、升级、弹窗之类，不是给用户直接打开的。
 
+## 首页实时 HDMI 画面（试过，放弃）
+
+- 第三方 App 可以用 `TvView` 播放 HDMI：MediaTek 的 `HDMIInputService` 会给 Aerial 建会话，`onVideoAvailable` 能收到（小米显示器 MFFU1 上实测 4K 信号）。
+- 但它是 SurfaceView：不跟着磁贴缩放、倾斜、圆角；视频走 sideband 硬件层，`screencap` 截不到，截出来整屏是黑的；户主看到的实际效果是没有圆角、滚动时跳动、背景变黑。最后改成静态的信号源磁贴，按一下用小米自己的 `EXTSRC_PLAY` 全屏切过去（1.13）。
+
 ## Aerial 的任务被清理（1.12 修复）
 
 - 1.11 起按 HOME 会先让原桌面到前台。之前 MainActivity 设了 `excludeFromRecents="true"`：Aerial 在这里不是系统认可的 HOME，它的任务一离开前台就会被系统清理（`wm_destroy_activity ... finish-imm:recent-task-trimmed`）。守护服务拉回来时，只能新建一个 MainActivity，焦点于是总回到第一个 App。

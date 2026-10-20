@@ -29,12 +29,23 @@ object AerialSettings {
 
     var focusStyle by mutableStateOf(FocusStyle.HighContrast); private set
 
+    /** TV inputs pinned to Home as tiles, by TvInputInfo id. */
+    var pinnedSources by mutableStateOf<Set<String>>(emptySet()); private set
+
     fun init(context: Context) {
         if (started) return
         started = true
         app = context.applicationContext
-        focusStyle = FocusStyle.of(app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("focus_style", null))
+        val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        focusStyle = FocusStyle.of(prefs.getString("focus_style", null))
+        pinnedSources = prefs.getStringSet("pinned_sources", null)?.toSet() ?: emptySet()
     }
+
+    fun setPinned(inputId: String, pinned: Boolean) {
+        pinnedSources = if (pinned) pinnedSources + inputId else pinnedSources - inputId
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putStringSet("pinned_sources", pinnedSources) }
+    }
+
 
     fun chooseFocusStyle(style: FocusStyle) {
         focusStyle = style

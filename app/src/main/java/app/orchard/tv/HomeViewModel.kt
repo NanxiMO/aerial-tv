@@ -10,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import app.orchard.tv.apps.AppCatalog
 import app.orchard.tv.apps.AppEntry
 import app.orchard.tv.apps.LayoutStore
+import app.orchard.tv.apps.sourceEntry
+import app.orchard.tv.settings.AerialSettings
 import app.orchard.tv.system.Brightness
 import app.orchard.tv.system.HomeStatus
 import app.orchard.tv.system.NetworkStatus
@@ -69,16 +71,34 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     fun reload() {
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            all = AppCatalog.load(context)
+            val ctx = context
+            all = AppCatalog.load(ctx)
+            sources = withContext(Dispatchers.Default) { SystemProbe.sources(ctx) }
             arrange()
             loaded = true
         }
     }
 
     private fun arrange() {
-        val (visible, hidden) = store.arrange(all)
+        // Pinned TV inputs share the grid, order and hiding with the apps.
+        val pinned = sources.filter { it.id in AerialSettings.pinnedSources }.map(::sourceEntry)
+        val (visible, hidden) = store.arrange(all + pinned)
         apps = visible
         hiddenApps = hidden
+    }
+
+    /** Pins a TV input to Home (as the first tile, where it is easiest to reach) or takes it off. */
+    fun setSourcePinned(source: TvSource, pinned: Boolean) {
+        AerialSettings.setPinned(source.id, pinned)
+        arrange()
+        if (pinned) {
+            val key = apps.firstOrNull { it.source?.id == source.id }?.key
+            val first = apps.firstOrNull()?.key
+            if (key != null && first != null && key != first) {
+                store.move(key, first)
+                arrange()
+            }
+        }
     }
 
     fun refreshSystem() {
@@ -87,7 +107,10 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
             val (n, v, s) = withContext(Dispatchers.Default) {
                 Triple(SystemProbe.network(ctx), SystemProbe.volume(ctx), SystemProbe.sources(ctx))
             }
-            network = n; volume = v; sources = s
+            network = n; volume = v
+            // TvSource holds an Intent, which has no value equality; compare what a tile shows.
+            fun shown(list: List<TvSource>) = list.map { Triple(it.id, it.label, it.deviceName) }
+            if (shown(s) != shown(sources)) { sources = s; arrange() } else sources = s
             homeStatus = SystemProbe.homeStatus(ctx)
             brightness = Brightness.level(ctx)
         }

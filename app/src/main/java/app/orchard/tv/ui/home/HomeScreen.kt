@@ -323,6 +323,10 @@ fun HomeScreen(
             },
             onInfo = { vm.overlay = Overlay.None; onAppInfo(it) },
             onUninstall = { vm.overlay = Overlay.None; onUninstall(it) },
+            onUnpin = { key ->
+                vm.overlay = Overlay.None
+                apps.firstOrNull { it.key == key }?.source?.let { vm.setSourcePinned(it, false) }
+            },
             onDismiss = { vm.overlay = Overlay.None },
         )
 

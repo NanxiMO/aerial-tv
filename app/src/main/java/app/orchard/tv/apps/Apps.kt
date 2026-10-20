@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import app.orchard.tv.system.TvSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -21,14 +22,29 @@ data class AppEntry(
     /** False for apps on the system image, which can be disabled but not uninstalled. */
     val removable: Boolean,
     val art: TileArt,
+    /** Set for a TV input pinned to Home (HDMI, tuner...) rather than an app. */
+    val source: TvSource? = null,
 ) {
     val key: String get() = packageName
 
-    fun launchIntent(): Intent = Intent(Intent.ACTION_MAIN)
+    fun launchIntent(): Intent = source?.let { Intent(it.intent) } ?: Intent(Intent.ACTION_MAIN)
         .addCategory(if (leanback) Intent.CATEGORY_LEANBACK_LAUNCHER else Intent.CATEGORY_LAUNCHER)
         .setComponent(component)
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
 }
+
+/** A Home tile for a TV input. Its key never collides with a package name. */
+fun sourceEntry(source: TvSource): AppEntry = AppEntry(
+    packageName = SOURCE_KEY_PREFIX + source.id,
+    label = source.label,
+    component = ComponentName("input", source.id),
+    leanback = false,
+    removable = false,
+    art = TileArtFactory.forSource(source.kind, source.label, source.deviceName),
+    source = source,
+)
+
+const val SOURCE_KEY_PREFIX = "input:"
 
 object AppCatalog {
     /** Xiaomi's app store declares only this category, not CATEGORY_LAUNCHER (MiTV-MFTR0). */

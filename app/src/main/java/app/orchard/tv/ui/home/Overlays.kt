@@ -116,6 +116,7 @@ fun AppMenu(
     onHide: (String) -> Unit,
     onInfo: (String) -> Unit,
     onUninstall: (String) -> Unit,
+    onUnpin: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val visible = app != null
@@ -164,8 +165,13 @@ fun AppMenu(
                     modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 6.dp),
                 )
                 MenuRow(Glyph.Move, stringResource(R.string.menu_move), { onMove(shownApp.key) }, focusRequester = first)
-                MenuRow(Glyph.EyeSlash, stringResource(R.string.menu_hide), { onHide(shownApp.key) })
-                MenuRow(Glyph.Info, stringResource(R.string.menu_info), { onInfo(shownApp.key) })
+                if (shownApp.source != null) {
+                    // A pinned TV input: no app info or uninstall, and "remove" unpins it.
+                    MenuRow(Glyph.EyeSlash, stringResource(R.string.menu_unpin_source), { onUnpin(shownApp.key) })
+                } else {
+                    MenuRow(Glyph.EyeSlash, stringResource(R.string.menu_hide), { onHide(shownApp.key) })
+                    MenuRow(Glyph.Info, stringResource(R.string.menu_info), { onInfo(shownApp.key) })
+                }
                 if (shownApp.removable) {
                     MenuRow(Glyph.Trash, stringResource(R.string.menu_uninstall), { onUninstall(shownApp.key) }, destructive = true)
                 }

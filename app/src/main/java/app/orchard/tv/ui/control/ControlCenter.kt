@@ -1,5 +1,8 @@
 package app.orchard.tv.ui.control
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.heightIn
 import android.view.KeyEvent as NativeKeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -321,7 +324,7 @@ private fun InputsPage(vm: HomeViewModel, onOpen: (android.content.Intent) -> Un
         withFrameNanos { }
         runCatching { first.requestFocus() }
     }
-    Column {
+    Column(Modifier.heightIn(max = 470.dp).verticalScroll(rememberScrollState())) {
         MenuRow(Glyph.ChevronLeft, stringResource(R.string.cc_inputs), onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Main) })
         Spacer(Modifier.height(8.dp))
         if (vm.sources.isEmpty()) {
@@ -342,6 +345,24 @@ private fun InputsPage(vm: HomeViewModel, onOpen: (android.content.Intent) -> Un
                 onClick = { onOpen(source.intent) },
             )
         }
+        if (vm.sources.isNotEmpty()) {
+            Spacer(Modifier.height(14.dp))
+            BasicText(stringResource(R.string.cc_inputs_pin), style = Type.Callout, modifier = Modifier.padding(start = 14.dp, bottom = 6.dp))
+            vm.sources.forEach { source ->
+                val pinned = source.id in AerialSettings.pinnedSources
+                ChoiceRow(
+                    text = source.deviceName?.let { "${source.label} · $it" } ?: source.label,
+                    selected = pinned,
+                    focusRequester = null,
+                    onClick = { vm.setSourcePinned(source, !pinned) },
+                )
+            }
+            BasicText(
+                stringResource(R.string.cc_inputs_pin_hint),
+                style = Type.Caption,
+                modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 8.dp),
+            )
+        }
     }
 }
 
@@ -353,7 +374,7 @@ private fun SettingsPage(vm: HomeViewModel) {
         withFrameNanos { }
         runCatching { first.requestFocus() }
     }
-    Column {
+    Column(Modifier.heightIn(max = 470.dp).verticalScroll(rememberScrollState())) {
         MenuRow(Glyph.ChevronLeft, stringResource(R.string.cc_aerial_settings), onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Main) })
         Spacer(Modifier.height(10.dp))
         BasicText(stringResource(R.string.st_focus_style), style = Type.Callout, modifier = Modifier.padding(start = 14.dp, bottom = 6.dp))
