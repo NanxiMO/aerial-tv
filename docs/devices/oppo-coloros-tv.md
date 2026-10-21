@@ -1,6 +1,6 @@
-# OPPO ColorOS TV 2.4（`OPPOCNM652`）
+# OPPO K9 65 寸（ColorOS TV 2.4，`OPPOCNM652`）
 
-一台 65 寸 OPPO 智能电视：Android 9，2 GB 内存，只有 32 位应用能装，系统是 ColorOS TV 2.4
+一台 65 寸 OPPO K9：系统是 ColorOS TV 2.4（基于 Android 9），2 GB 内存，只有 32 位应用能装
 （`PPR2.180905.006.A1`，固件 2023-01-12）。下面写的都是这台机器上实际试出来的结果，
 不是在别的 OPPO 机型上推断的。
 
