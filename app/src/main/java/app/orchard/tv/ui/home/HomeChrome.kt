@@ -32,8 +32,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.width
+import app.orchard.tv.R
+import app.orchard.tv.apps.AppEntry
 import app.orchard.tv.system.NetKind
 import app.orchard.tv.system.NetworkStatus
 import app.orchard.tv.ui.components.Pressable
@@ -125,6 +131,91 @@ private fun darkened(src: ImageBitmap, alpha: Float): ImageBitmap {
     val out = src.asAndroidBitmap().copy(android.graphics.Bitmap.Config.ARGB_8888, true)
     android.graphics.Canvas(out).drawColor(android.graphics.Color.argb((alpha * 255).roundToInt(), 0, 0, 0))
     return out.asImageBitmap()
+}
+
+/**
+ * The band above the grid, where tvOS keeps the Top Shelf. Idle it is the clock: that corner is
+ * the time when the owner is only glancing at the screen. With an app focused it turns to that
+ * app, so the top of the screen answers "what am I about to open" the way the shelf answers "what
+ * is in here".
+ *
+ * The artwork is the tile's own [TileArt] already in memory -- when the owner has sent a picture
+ * for this app from the phone page, that is what the tile is made of. Nothing is decoded here and
+ * nothing animates while idle: the shelf is replaced only when focus moves.
+ */
+@Composable
+fun Shelf(
+    app: AppEntry?,
+    now: LocalDateTime,
+    modifier: Modifier = Modifier,
+) {
+    // The content has to draw the state it is given, not the shelf's current app: through a
+    // crossfade both slots are in the composition at once, and both would otherwise read the app
+    // focus just landed on -- the outgoing half would show the incoming picture and the fade
+    // would have nothing to reveal. Keyed by the entry itself, so this crosses when focus moves
+    // and also when that app's art is rebuilt under it.
+    Crossfade(
+        targetState = app,
+        animationSpec = tween(220, easing = Motion.EaseOut),
+        modifier = modifier,
+        label = "shelf",
+    ) { focused ->
+        if (focused == null) ShelfClock(now) else ShelfHero(focused)
+    }
+}
+
+/** The focused app's artwork and name, beside each other in the shelf band. */
+@Composable
+private fun ShelfHero(app: AppEntry, modifier: Modifier = Modifier) {
+    val art = app.art
+    Row(
+        modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        // Clustered to the left, not spread across the band: ShelfClock is left-aligned too, so
+        // both states leave the same right-hand air for the wallpaper to breathe through.
+        horizontalArrangement = Arrangement.spacedBy(32.dp),
+    ) {
+        // fill = false: the column wraps its text, capped at whatever the 16:9 panel does not
+        // take. A long name ellipsizes instead of pushing the picture off the screen.
+        Column(Modifier.weight(1f, fill = false)) {
+            BasicText(
+                app.label,
+                style = Type.LargeTitle,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            BasicText(
+                stringResource(R.string.shelf_open),
+                style = Type.Callout,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        // The tile at about 1.7x: sharp on a 1080p UI, and as far as it goes before it softens.
+        // back fills the panel, fore is the logo layer and keeps its place inside it.
+        Canvas(
+            Modifier
+                .width(300.dp)
+                .height(169.dp)
+                .clip(RoundedCornerShape(14.dp)),
+        ) {
+            val w = size.width
+            val h = size.height
+            drawImage(
+                art.back,
+                dstSize = IntSize(w.roundToInt(), h.roundToInt()),
+                filterQuality = FilterQuality.Medium,
+            )
+            art.fore?.let { fore ->
+                val r = art.foreAt
+                drawImage(
+                    fore,
+                    dstOffset = IntOffset((r.left * w).roundToInt(), (r.top * h).roundToInt()),
+                    dstSize = IntSize((r.width * w).roundToInt(), (r.height * h).roundToInt()),
+                    filterQuality = FilterQuality.Medium,
+                )
+            }
+        }
+    }
 }
 
 /**
