@@ -34,7 +34,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -238,7 +237,6 @@ fun HomeScreen(
         val target = with(density) { metrics.scrollFor(focusedRow, rows).toPx() }
         val maxScroll = with(density) { metrics.scrollFor(rows - 1, rows).toPx() }.coerceAtLeast(0f)
         LaunchedEffect(maxScroll) { scroll.updateBounds(0f, maxScroll) }
-        val pastShelf by remember(collapsePx) { derivedStateOf { scroll.value > collapsePx / 2 } }
         val decay = rememberSplineBasedDecay<Float>()
         LaunchedEffect(target, dragged) {
             if (dragged) return@LaunchedEffect
@@ -285,10 +283,15 @@ fun HomeScreen(
             )
 
             Box(Modifier.fillMaxSize().offset { IntOffset(0, -scroll.value.roundToInt()) }) {
-                ShelfClock(
+                Shelf(
+                    // The shelf follows the grid's focus; with the status pill up it goes back to
+                    // the clock, which is what that corner is for when nothing is selected.
+                    app = apps.getOrNull(focusedIndex).takeUnless { pillFocused },
                     now = now,
                     modifier = Modifier
-                        .padding(start = metrics.margin, top = metrics.topRowY - 196.dp)
+                        .padding(start = metrics.margin, end = metrics.margin, top = metrics.topRowY - 196.dp)
+                        .fillMaxWidth()
+                        .height(176.dp)
                         .graphicsLayer { alpha = 1f - (scroll.value / collapsePx * 1.6f).coerceIn(0f, 1f) },
                 )
 
@@ -348,7 +351,11 @@ fun HomeScreen(
         StatusPill(
             now = now,
             network = vm.network,
-            showTime = if (dragged) pastShelf else focusedRow > 0,
+            // Always: the shelf band now turns into the focused app's shelf, so the time is not up
+            // there whenever an app has focus -- which is from the first frame on. tvOS keeps the
+            // clock in the status corner for the same reason. The old "only once past the shelf"
+            // rule existed because the big clock sat in that band for the whole top row.
+            showTime = true,
             enabled = gridEnabled && moving == null,
             focusRequester = pillRequester,
             onFocused = { gained ->
