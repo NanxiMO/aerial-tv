@@ -14,6 +14,7 @@ import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.core.content.getSystemService
 import app.orchard.tv.R
 import app.orchard.tv.guard.HomeGuardService
@@ -156,6 +157,14 @@ object SystemProbe {
      * cannot set itself. TCL keeps it in a side panel that its settings app shows as a service.
      */
     fun openPictureSettings(context: Context): Boolean {
+        if (MulanBacklightPanel.supports(Build.MODEL, Build.DEVICE, Build.VERSION.SDK_INT, Build.FINGERPRINT)) {
+            // 此固件的背光面板由广播接收器打开，不响应通用显示设置 Activity。
+            return runCatching {
+                context.sendBroadcast(Intent(MulanBacklightPanel.ACTION).setComponent(
+                    ComponentName(MulanBacklightPanel.PACKAGE, MulanBacklightPanel.RECEIVER),
+                ))
+            }.onFailure { Log.w("AerialSystem", "Could not open Mulan backlight panel", it) }.isSuccess
+        }
         if (isInstalled(context, "com.tcl.settings")) {
             val shown = runCatching {
                 context.startService(Intent("com.tcl.settings.SHOW_WINDOW").setPackage("com.tcl.settings"))
