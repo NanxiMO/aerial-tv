@@ -36,6 +36,15 @@ object GuardSetup {
     private const val KEY_REVIVALS = "revivals"
 
     private const val REVIVAL_WINDOW_MS = 10 * 60 * 1000L
+
+    /**
+     * How long after boot an unknown front means "we have not seen a window event yet" rather than
+     * "the firmware stopped Aerial". Xiaomi MiTV-MFFU0 (finch, Android 14) never delivers the stock
+     * launcher's TYPE_WINDOW_STATE_CHANGED at all, so `lastWindow` stays null through the whole boot
+     * window (issue #154).
+     */
+    const val BOOT_WINDOW_MS = 3 * 60 * 1000L
+
     private const val KEY_KEEP_ADB = "keep_adb"
     private const val KEY_OWN_SCREENSAVER = "own_screensaver"
     private const val KEY_HOME_IN_FRONT = "home_in_front"
@@ -64,6 +73,10 @@ object GuardSetup {
         // Brought back with the screen off: a standby kill (Xiaomi), not eUI stopping Aerial in use.
         // Counting those, a few standbys in a row made the guard leave PatchWall in front at wake.
         if (context.getSystemService(PowerManager::class.java)?.isInteractive == false) return
+        // A bind just after boot is not the firmware stopping Aerial mid-use: the notification
+        // listener binds on every boot. Counting those made three reboots inside ten minutes look
+        // like eUI and blocked the boot take-over (Xiaomi MiTV-MFFU0, issue #154).
+        if (SystemClock.elapsedRealtime() < BOOT_WINDOW_MS) return
         val now = System.currentTimeMillis()
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val recent = recentRevivals(context, now) + now

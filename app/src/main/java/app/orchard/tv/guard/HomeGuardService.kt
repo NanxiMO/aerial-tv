@@ -179,7 +179,12 @@ class HomeGuardService : AccessibilityService() {
         // task is uncovered, not always its home activity (PatchWall's StrategicLayerActivity).
         // Unless the firmware keeps stopping Aerial: then an unknown front is most likely the app
         // the viewer is in, and Home stays with the Home key (LeTV eUI, issue #63).
-        if (last == null && GuardSetup.revivedOften(this)) {
+        // At boot the guard always binds before any window event arrives, so an unknown front says
+        // nothing about the firmware stopping Aerial — on Xiaomi MiTV-MFFU0 the stock launcher's
+        // windows are never delivered at all. Counting the boot-time revive into the history made
+        // three reboots inside ten minutes block the take-over (issue #154).
+        val booting = SystemClock.elapsedRealtime() < BOOT_WINDOW_MS
+        if (last == null && !booting && GuardSetup.revivedOften(this)) {
             Log.i(TAG, "$reason, but Aerial keeps being stopped and the front is unknown; leaving it")
             return
         }
@@ -375,7 +380,7 @@ class HomeGuardService : AccessibilityService() {
 
     companion object {
         private const val TAG = "AerialGuard"
-        private const val BOOT_WINDOW_MS = 3 * 60 * 1000L
+        private const val BOOT_WINDOW_MS = GuardSetup.BOOT_WINDOW_MS
         private const val SETTLE_MS = 1500L
         private const val WAKE_WINDOW_MS = 15_000L
 
