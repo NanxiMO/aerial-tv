@@ -9,9 +9,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +39,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,12 +53,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.relocation.BringIntoViewModifierNode
+import androidx.compose.ui.relocation.bringIntoView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
@@ -145,7 +156,7 @@ fun WallpaperSheet(
                 // How Home looks, in the order you see it: the picture behind everything, how Home
                 // is laid out over it, what replaces it when idle, then the weather and the PIN.
                 // Settings sit in tvOS-style grouped rows; each group's note follows the focused row.
-                Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(scroll)) {
+                SettingsColumn(Modifier.weight(1f).fillMaxHeight(), scroll) {
                     BasicText(stringResource(R.string.wp_title), style = Type.LargeTitle)
                     Spacer(Modifier.height(16.dp))
                     SectionTitle(R.string.wp_wallpaper)
@@ -246,6 +257,38 @@ fun WallpaperSheet(
     }
 }
 
+/**
+ * TV's default pivot scrolls even a fully visible card to 30% of the viewport. On a horizontal
+ * focus move its changing scale makes the outer column bob up and down. Only this vertical
+ * scroll uses minimal movement; the nested wallpaper rows keep their platform scrolling policy.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun SettingsColumn(modifier: Modifier, scroll: ScrollState, content: @Composable ColumnScope.() -> Unit) {
+    val childScrollSpec = LocalBringIntoViewSpec.current
+    CompositionLocalProvider(LocalBringIntoViewSpec provides MinimalScroll) {
+        Column(modifier.verticalScroll(scroll)) {
+            CompositionLocalProvider(LocalBringIntoViewSpec provides childScrollSpec) { content() }
+        }
+    }
+}
+
+private val MinimalScroll = object : BringIntoViewSpec {}
+
+private data object WallpaperRowBounds : ModifierNodeElement<WallpaperRowBoundsNode>() {
+    override fun create() = WallpaperRowBoundsNode()
+    override fun update(node: WallpaperRowBoundsNode) {}
+    override fun InspectorInfo.inspectableProperties() { name = "wallpaperRowBounds" }
+}
+
+/** Keep the whole row and its captions visible, using bounds that do not change with focus scale. */
+private class WallpaperRowBoundsNode : Modifier.Node(), BringIntoViewModifierNode {
+    override suspend fun bringIntoView(childCoordinates: LayoutCoordinates, boundsProvider: () -> Rect?) {
+        // LazyRow has already handled horizontal scrolling. Its parent only needs the viewport.
+        if (childCoordinates.isAttached && boundsProvider() != null) bringIntoView()
+    }
+}
+
 @Composable
 private fun WallpaperRows() {
     val items = Wallpapers.items
@@ -272,9 +315,9 @@ private fun WallpaperRows() {
         // A row clips to its bounds, and the focused card grows by 8%: room on the left for that,
         // with the row moved back by as much so the cards still line up with the titles.
         LazyRow(
-            modifier = Modifier.offset(x = (-10).dp),
+            modifier = Modifier.offset(x = (-10).dp).then(WallpaperRowBounds),
             horizontalArrangement = Arrangement.spacedBy(18.dp),
-            contentPadding = PaddingValues(start = 14.dp, end = 24.dp, top = 6.dp, bottom = 4.dp),
+            contentPadding = PaddingValues(start = 14.dp, end = 24.dp, top = 6.dp, bottom = 6.dp),
         ) {
             items(list, key = { it.id }) { wp ->
                 WallpaperCard(wp, if (r == 0 && wp === list.first()) first else null)
