@@ -80,6 +80,7 @@
     <string name="wp_daily">Күннің фотолары</string>
     <string name="wp_daily_latest">Әрқашан бүгінгісі</string>
     <string name="wp_builtin">Кіріктірілген</string>
+    <string name="wp_live">Аэрожиын · басты экранда 10 секундтан кейін ойнайды</string>
     <string name="wp_photos">Менің фотоларым</string>
     <string name="wp_photos_rotate">Күніне біреуі</string>
     <string name="wp_screensaver">Экран қорғаушы</string>
