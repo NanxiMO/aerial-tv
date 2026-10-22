@@ -80,6 +80,7 @@
     <string name="wp_daily">Фото дня</string>
     <string name="wp_daily_latest">Всегда сегодняшнее</string>
     <string name="wp_builtin">Встроенные</string>
+    <string name="wp_live">Аэросъёмка · запускается через 10 секунд на главном экране</string>
     <string name="wp_photos">Мои фото</string>
     <string name="wp_photos_rotate">Одно в день</string>
     <string name="wp_screensaver">Заставка</string>
