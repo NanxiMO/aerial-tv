@@ -206,4 +206,13 @@
     <string name="notice_boot_on">%1$s відкриється під час увімкнення телевізора</string>
     <string name="notice_boot_switch">%1$s відкриється під час увімкнення телевізора замість %2$s</string>
     <string name="notice_boot_off">%1$s більше не відкриватиметься під час увімкнення телевізора</string>
+    <string name="shelf_continue">Продовжити перегляд</string>
+    <string name="shelf_season">Сезон %1$s</string>
+    <string name="shelf_episode">Серія %1$s</string>
+    <string name="shelf_left_min">Залишилось %1$d хв</string>
+    <string name="shelf_left_hm">Залишилось %1$d год %2$d хв</string>
+    <string name="st_app_content">Вміст застосунків</string>
+    <string name="st_app_content_on">Показувати</string>
+    <string name="st_app_content_off">Вимк.</string>
+    <string name="st_app_content_hint">У застосунку з «Продовжити перегляд» або власними добірками над плиткою в першому ряду з’являється стрілка. Натисніть «вгору», щоб побачити їх, у кожного каналу своя вкладка. Інші застосунки лишаються як є.</string>
 </resources>

@@ -206,4 +206,13 @@
     <string name="notice_boot_on">%1$s откроется при включении телевизора</string>
     <string name="notice_boot_switch">%1$s откроется при включении телевизора вместо %2$s</string>
     <string name="notice_boot_off">%1$s больше не будет открываться при включении телевизора</string>
+    <string name="shelf_continue">Продолжить просмотр</string>
+    <string name="shelf_season">Сезон %1$s</string>
+    <string name="shelf_episode">Серия %1$s</string>
+    <string name="shelf_left_min">Осталось %1$d мин</string>
+    <string name="shelf_left_hm">Осталось %1$d ч %2$d мин</string>
+    <string name="st_app_content">Контент приложений</string>
+    <string name="st_app_content_on">Показывать</string>
+    <string name="st_app_content_off">Выкл.</string>
+    <string name="st_app_content_hint">У приложения с «Продолжить просмотр» или своими подборками над плиткой в первом ряду появляется стрелка. Нажмите «вверх», чтобы увидеть их, у каждого канала своя вкладка. Остальные приложения остаются как есть.</string>
 </resources>

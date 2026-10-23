@@ -18,7 +18,12 @@ class ShelfRowsTest {
         thumb: String? = null,
         episode: String? = null,
         description: String? = null,
-    ) = RawProgram(title, episode, description, poster, thumb, aspect, intent, channel, weight, engaged, position, duration)
+        season: String? = null,
+        episodeNo: String? = null,
+    ) = RawProgram(
+        title, episode, description, poster, thumb, aspect, intent, channel, weight, engaged, position, duration,
+        season = season, episodeNumber = episodeNo,
+    )
 
     @Test fun `watch next comes first, most recently engaged first`() {
         val items = ShelfRows.arrange(
@@ -107,5 +112,75 @@ class ShelfRowsTest {
         assertEquals(2f / 3f, ShelfRows.aspect(4), 0.001f)
         assertEquals(1f / 1.441f, ShelfRows.aspect(5), 0.001f)
         assertEquals(16f / 9f, ShelfRows.aspect(99), 0.001f)
+    }
+
+    @Test fun `items carry their channel and its title, watch next has none`() {
+        val items = ShelfRows.arrange(
+            watchNext = listOf(prog("w", engaged = 1)),
+            previews = listOf(prog("p", channel = 4)),
+            channelOrder = listOf(4),
+            channelTitles = mapOf(4L to "Subscriptions"),
+        )
+        assertEquals(0L, items[0].channel)
+        assertNull(items[0].channelTitle)
+        assertEquals(4L, items[1].channel)
+        assertEquals("Subscriptions", items[1].channelTitle)
+    }
+
+    @Test fun `tabs group the shelf by channel in shelf order`() {
+        val items = ShelfRows.arrange(
+            watchNext = listOf(prog("w", engaged = 1)),
+            previews = listOf(prog("b", channel = 2), prog("a1", channel = 1), prog("a2", channel = 1, weight = -1)),
+            channelOrder = listOf(1, 2),
+            channelTitles = mapOf(1L to "A", 2L to "B"),
+        )
+        val tabs = ShelfRows.tabs(items)
+        assertEquals(listOf(null, "A", "B"), tabs.map { it.title })
+        assertEquals(listOf(listOf("w"), listOf("a1", "a2"), listOf("b")), tabs.map { t -> t.items.map { it.title } })
+    }
+
+    @Test fun `the limit is per tab, so a long channel does not crowd out the next`() {
+        val items = ShelfRows.arrange(
+            emptyList(),
+            (1..30).map { prog("a$it", channel = 1) } + (1..5).map { prog("b$it", channel = 2) },
+            listOf(1, 2),
+        )
+        assertEquals(listOf(20, 5), ShelfRows.tabs(items).map { it.items.size })
+    }
+
+    @Test fun `season and episode come from the display numbers, blank or zero meaning none`() {
+        val items = ShelfRows.arrange(
+            listOf(
+                prog("ep", season = "1", episodeNo = "6", engaged = 3),
+                prog("movie", engaged = 2),
+                prog("zero", season = "0", episodeNo = " ", engaged = 1),
+            ),
+            emptyList(), emptyList(),
+        )
+        assertEquals("1", items[0].season)
+        assertEquals("6", items[0].episode)
+        assertNull(items[1].season)
+        assertNull(items[1].episode)
+        assertNull(items[2].season)
+        assertNull(items[2].episode)
+    }
+
+    @Test fun `time left is the duration less the position, only where there is progress`() {
+        val items = ShelfRows.arrange(
+            listOf(
+                prog("half", position = 600_000, duration = 3_600_000, engaged = 3),
+                prog("none", engaged = 2),
+                prog("broken", duration = 1, engaged = 1),
+            ),
+            emptyList(), emptyList(),
+        )
+        assertEquals(3_000_000L, items[0].leftMillis)
+        assertNull(items[1].leftMillis)
+        assertNull(items[2].leftMillis)
+    }
+
+    @Test fun `a blank description counts as none`() {
+        val a = ShelfRows.arrange(emptyList(), listOf(prog("a", description = "  ", channel = 1)), listOf(1)).single()
+        assertNull(a.description)
     }
 }

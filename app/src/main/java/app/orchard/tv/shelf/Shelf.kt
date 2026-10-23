@@ -1,6 +1,7 @@
 package app.orchard.tv.shelf
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.database.Cursor
@@ -10,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.getValue
+import app.orchard.tv.settings.AerialSettings
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.Dispatchers
@@ -66,6 +68,35 @@ object Shelf {
             .onFailure { Log.w(TAG, "cannot watch the TV provider", it) }
     }
 
+    /**
+     * Asks the apps that can publish to do so ([ShelfAsk]); each is asked once per version, and
+     * what it publishes arrives through the observer. Does nothing without the permission to read it.
+     */
+    suspend fun askToPublish() {
+        if (!available() || !AerialSettings.appContent) return
+        withContext(Dispatchers.IO) {
+            val pm = app.packageManager
+            val prefs = app.getSharedPreferences("shelf", Context.MODE_PRIVATE)
+            val asked = prefs.getStringSet("asked", emptySet()).orEmpty()
+            val found = runCatching { pm.queryBroadcastReceivers(Intent(ShelfAsk.ACTION), 0) }.getOrDefault(emptyList()).mapNotNull {
+                val info = it.activityInfo ?: return@mapNotNull null
+                val stamp = runCatching { pm.getPackageInfo(info.packageName, 0).lastUpdateTime }.getOrDefault(0L)
+                ShelfAsk.Receiver(info.packageName, info.name, stamp)
+            }
+            val todo = ShelfAsk.pending(found, asked, app.packageName)
+            todo.forEach {
+                runCatching { app.sendBroadcast(Intent(ShelfAsk.ACTION).setClassName(it.pkg, it.cls)) }
+                    .onFailure { e -> Log.w(TAG, "could not ask ${it.pkg}", e) }
+            }
+            if (todo.isNotEmpty()) {
+                Log.i(TAG, "asked to publish: " + todo.joinToString { it.pkg })
+                // Only the current versions are kept, so the set does not grow with every update.
+                val keep = found.map(ShelfAsk::key).toSet()
+                prefs.edit().putStringSet("asked", (asked + todo.map(ShelfAsk::key)).intersect(keep)).apply()
+            }
+        }
+    }
+
     fun available(): Boolean = Build.VERSION.SDK_INT >= 26 &&
         app.checkSelfPermission(READ_TV_LISTINGS) == PackageManager.PERMISSION_GRANTED
 
@@ -100,35 +131,39 @@ object Shelf {
      */
     private fun readAll(): Map<String, List<ShelfItem>> {
         val r = app.contentResolver
-        val channels = r.query(CHANNELS, arrayOf("_id", "package_name", "browsable"), null, null, null)?.use { c ->
-            buildList { while (c.moveToNext()) add(Triple(c.getString(1).orEmpty(), c.getLong(0), c.getInt(2) == 1)) }
+        val channels = r.query(CHANNELS, arrayOf("_id", "package_name", "browsable", "display_name"), null, null, null)?.use { c ->
+            buildList { while (c.moveToNext()) add(Channel(c.getString(1).orEmpty(), c.getLong(0), c.getInt(2) == 1, c.getString(3)?.trim().orEmpty())) }
         }.orEmpty()
         val watchNext = query(WATCH_NEXT, PROGRAM_COLUMNS + "last_engagement_time_utc_millis")
         val previews = query(PREVIEWS, PROGRAM_COLUMNS + "channel_id")
-        val packages = (channels.map { it.first } + watchNext.map { it.first } + previews.map { it.first }).toSet()
+        val packages = (channels.map { it.pkg } + watchNext.map { it.first } + previews.map { it.first }).toSet()
         // One line per read, so `adb logcat -s Shelf` answers "does this app publish anything?".
         Log.i(TAG, "read " + packages.sorted().joinToString { pkg ->
-            "$pkg: ${channels.count { it.first == pkg }} channels, ${watchNext.count { it.first == pkg }} watch next, ${previews.count { it.first == pkg }} previews"
+            "$pkg: ${channels.count { it.pkg == pkg }} channels, ${watchNext.count { it.first == pkg }} watch next, ${previews.count { it.first == pkg }} previews"
         }.ifEmpty { "nothing published" })
         return packages.associateWith { pkg ->
             // The channels the owner chose for the home screen. Browsable is written by the
             // system's own launcher; where it never ran or never asked, every channel of the app
             // reads as hidden, so then all of them count rather than none.
-            val own = channels.filter { it.first == pkg }.sortedBy { it.second }
-            val order = own.filter { it.third }.ifEmpty { own }.map { it.second }
+            val own = channels.filter { it.pkg == pkg }.sortedBy { it.id }
+            val order = own.filter { it.browsable }.ifEmpty { own }.map { it.id }
             ShelfRows.arrange(
                 watchNext.filter { it.first == pkg }.map { it.second },
                 previews.filter { it.first == pkg }.map { it.second },
                 order,
+                own.filter { it.name.isNotEmpty() }.associate { it.id to it.name },
             )
         }.filterValues { it.isNotEmpty() }
     }
+
+    private class Channel(val pkg: String, val id: Long, val browsable: Boolean, val name: String)
 
     /** Only what the shelf shows: rows also carry blobs (internal_provider_data) it never reads. */
     private val PROGRAM_COLUMNS = arrayOf(
         "package_name", "browsable", "title", "episode_title", "short_description",
         "poster_art_uri", "poster_art_aspect_ratio", "thumbnail_uri", "thumbnail_aspect_ratio",
         "intent_uri", "weight", "last_playback_position_millis", "duration_millis",
+        "season_display_number", "episode_display_number", "long_description",
     )
 
     /** A whole program table; every column if a provider does not know one of those names. */
@@ -155,6 +190,9 @@ object Shelf {
         val engaged = col("last_engagement_time_utc_millis")
         val position = col("last_playback_position_millis")
         val duration = col("duration_millis")
+        val longDescription = col("long_description")
+        val seasonCol = col("season_display_number")
+        val episodeCol = col("episode_display_number")
         val pkgCol = col("package_name")
         val browsable = col("browsable")
         fun str(i: Int) = if (i >= 0 && !c.isNull(i)) c.getString(i) else null
@@ -168,7 +206,7 @@ object Shelf {
                     str(pkgCol).orEmpty() to RawProgram(
                         title = str(title),
                         episodeTitle = str(episode),
-                        description = str(description),
+                        description = str(description)?.takeIf { it.isNotBlank() } ?: str(longDescription),
                         posterUri = posterUri,
                         thumbnailUri = str(thumb),
                         // The aspect of the picture the card will show.
@@ -179,6 +217,8 @@ object Shelf {
                         lastEngagedMillis = long(engaged),
                         positionMillis = long(position),
                         durationMillis = long(duration),
+                        season = str(seasonCol),
+                        episodeNumber = str(episodeCol),
                     ),
                 )
             }

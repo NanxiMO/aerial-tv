@@ -133,6 +133,8 @@ fun AppTile(
     modifier: Modifier = Modifier,
     /** Last tile of its row: Right stops here instead of finding the status pill above (#211). */
     rowEnd: Boolean = false,
+    /** Where Right goes from the last tile of the top row instead of stopping: the status pill, the way to Control Center. */
+    rowEndRight: FocusRequester? = null,
     /** False on the glass plate: the top row shows no names there, as on tvOS 26. */
     showName: Boolean = true,
     /** The name sits on the glass plate, which ends just under it: it does not step down past the focus frame. */
@@ -373,7 +375,7 @@ fun AppTile(
                         },
                     )
                 }
-                .focusProperties { if (rowEnd) right = FocusRequester.Cancel }
+                .focusProperties { if (rowEnd) right = rowEndRight ?: FocusRequester.Cancel }
                 .focusable(enabled),
         ) {
             Spacer(Modifier.fillMaxSize().drawWithCache {

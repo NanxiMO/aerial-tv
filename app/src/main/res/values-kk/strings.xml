@@ -206,4 +206,13 @@
     <string name="notice_boot_on">Теледидар қосылғанда %1$s ашылады</string>
     <string name="notice_boot_switch">Теледидар қосылғанда %2$s орнына %1$s ашылады</string>
     <string name="notice_boot_off">Теледидар қосылғанда %1$s енді ашылмайды</string>
+    <string name="shelf_continue">Қарауды жалғастыру</string>
+    <string name="shelf_season">%1$s-маусым</string>
+    <string name="shelf_episode">%1$s-серия</string>
+    <string name="shelf_left_min">%1$d мин қалды</string>
+    <string name="shelf_left_hm">%1$d сағ %2$d мин қалды</string>
+    <string name="st_app_content">Қолданба мазмұны</string>
+    <string name="st_app_content_on">Көрсету</string>
+    <string name="st_app_content_off">Өшірулі</string>
+    <string name="st_app_content_hint">«Қарауды жалғастыру» немесе өз топтамалары бар қолданбаның бірінші қатардағы тақтайшасының үстінде көрсеткі пайда болады. Оларды көру үшін «жоғары» басыңыз, әр арнаның өз қойындысы бар. Басқа қолданбалар өзгеріссіз қалады.</string>
 </resources>
