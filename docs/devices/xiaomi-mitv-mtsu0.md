@@ -55,8 +55,8 @@ HOME 锁定、屏保、待机唤醒的结论和 MFFU0 一致，见 [xiaomi-mitv-
 ## 安装记录
 
 ```bash
-adb connect 192.168.31.251:5555
-curl -fsSL https://aerial.qust.me/install.sh | KEEP_ADB=1 TV=192.168.31.251 bash
+adb connect <电视IP>:5555
+curl -fsSL https://aerial.qust.me/install.sh | KEEP_ADB=1 TV=<电视IP> bash
 ```
 
 输出：
