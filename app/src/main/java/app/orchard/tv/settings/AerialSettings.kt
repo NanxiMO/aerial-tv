@@ -9,6 +9,9 @@ import android.os.SystemClock
 import android.provider.Settings
 import app.orchard.tv.guard.GuardSetup
 import app.orchard.tv.wallpaper.AerialQuality
+import app.orchard.tv.wallpaper.MixPick
+import app.orchard.tv.wallpaper.MixSource
+import app.orchard.tv.wallpaper.MixTheme
 import java.security.MessageDigest
 
 /**
@@ -112,6 +115,21 @@ object AerialSettings {
     var aerialQuality by mutableStateOf(AerialQuality.Auto); private set
     private const val DEFAULT_SCREENSAVER_MINUTES = 5
 
+    /** Where the auto wallpaper takes its pictures from; Bing alone until chosen otherwise. */
+    var mixSources by mutableStateOf(setOf(MixSource.Bing)); private set
+
+    /** What the auto wallpaper's pictures are of; none chosen means everything. */
+    var mixThemes by mutableStateOf(emptySet<MixTheme>()); private set
+
+    /** The owner's Unsplash Access Key, given on the phone page; blank until then. It is never shown again. */
+    var unsplashKey by mutableStateOf(""); private set
+
+    /** Minutes between two pictures of the auto wallpaper. */
+    var mixMinutes by mutableStateOf(DEFAULT_MIX_MINUTES); private set
+
+    val mixMinutesChoices = listOf(5, 15, 30, 60, 1440)
+    private const val DEFAULT_MIX_MINUTES = 15
+
     fun init(context: Context) {
         if (started) return
         started = true
@@ -138,6 +156,11 @@ object AerialSettings {
         backStartsScreensaver = prefs.getBoolean("back_starts_screensaver", true)
         screensaverMinutes = prefs.getInt("screensaver_minutes", DEFAULT_SCREENSAVER_MINUTES)
         aerialQuality = AerialQuality.of(prefs.getString("aerial_quality", null))
+        mixSources = MixPick.parseSources(prefs.getString("mix_sources", null))
+        mixThemes = prefs.getString("mix_themes", null).orEmpty().split(',').mapNotNull { MixTheme.of(it.trim()) }.toSet()
+        unsplashKey = prefs.getString("unsplash_key", null).orEmpty()
+        if (unsplashKey.isEmpty()) mixSources = (mixSources - MixSource.Unsplash).ifEmpty { setOf(MixSource.Bing) }
+        mixMinutes = prefs.getInt("mix_minutes", DEFAULT_MIX_MINUTES).takeIf { it in mixMinutesChoices } ?: DEFAULT_MIX_MINUTES
     }
 
     fun chooseBootSource(id: String?) {
@@ -225,6 +248,33 @@ object AerialSettings {
         screensaverMinutes = minutes
         app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putInt("screensaver_minutes", minutes) }
         GuardSetup.setSystemScreensaverOff(app, minutes == NEVER)
+    }
+
+    fun toggleMixSource(source: MixSource) {
+        mixSources = MixPick.toggled(mixSources, source)
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putString("mix_sources", MixPick.writeSources(mixSources)) }
+    }
+
+    fun chooseMixSources(sources: Set<MixSource>) {
+        mixSources = sources.ifEmpty { setOf(MixSource.Bing) }
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putString("mix_sources", MixPick.writeSources(mixSources)) }
+    }
+
+    fun toggleMixTheme(theme: MixTheme) {
+        mixThemes = if (theme in mixThemes) mixThemes - theme else mixThemes + theme
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putString("mix_themes", mixThemes.joinToString(",") { it.key }) }
+    }
+
+    fun chooseUnsplashKey(key: String) {
+        unsplashKey = key.trim()
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putString("unsplash_key", unsplashKey) }
+        // Unsplash stays off until a key is saved.
+        if (unsplashKey.isEmpty() && MixSource.Unsplash in mixSources) chooseMixSources(mixSources - MixSource.Unsplash)
+    }
+
+    fun chooseMixMinutes(minutes: Int) {
+        mixMinutes = minutes
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putInt("mix_minutes", minutes) }
     }
 
     fun setPinned(inputId: String, pinned: Boolean) {

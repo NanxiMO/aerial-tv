@@ -42,6 +42,7 @@
   .segmented button[aria-pressed="true"] { background: var(--segment); box-shadow: 0 1px 4px rgba(0,0,0,.12); font-weight: 600; }
   .segmented button:active { transform: scale(.97); }
   .hint { color: var(--secondary); font-size: 13px; margin: 8px 4px 0; }
+  .hint a { color: inherit; text-decoration: underline; }
   .upload {
     display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
     padding: 15px; border: 0; border-radius: 14px; background: var(--tint); color: #fff;
@@ -137,6 +138,15 @@
 </form>
 <p class="hint" id="wxHint"></p>
 
+<h2>Unsplash</h2>
+<p class="hint" data-i18n="unsplash_how"></p>
+<p class="hint"><a href="https://unsplash.com/developers" target="_blank" rel="noopener">unsplash.com/developers</a></p>
+<form class="city" id="unsplashForm">
+  <input id="unsplashKey" type="password" data-i18n-placeholder="unsplash_ph" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <button id="unsplashBtn" data-i18n="unsplash_save"></button>
+</form>
+<p class="hint" id="unsplashHint"></p>
+
 <h2 data-i18n="add_h"></h2>
 <label class="upload" id="uploadBtn">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>
@@ -168,7 +178,7 @@ let state = null;
 
 // The language: ?lang=ru in the address, else the one picked with the button at the top right (kept on
 // the phone), else the first of the phone's preferred languages that has a table, else English. Keys are in KEYS, one array of texts per language.
-const KEYS = ["personalize", "screensaver", "screensaver_short", "ss_aerial", "ss_photos", "ss_clock", "focus", "focus_high", "focus_standard", "weather", "city_ph", "set", "add_h", "upload_label", "icons_h", "icons_hint", "feedback_h", "feedback_hint", "diag_show", "diag_copy", "diag_github", "hint_aerial", "hint_photos", "hint_clock", "g_live", "g_live_sub", "g_daily", "g_daily_sub", "g_photo", "g_builtin", "g_auto", "toast_wallpaper", "aria_delete", "confirm_delete", "wx_clear", "wx_partlycloudy", "wx_cloudy", "wx_fog", "wx_rain", "wx_snow", "wx_thunder", "wx_chosen", "wx_auto_btn", "toast_auto", "wx_guessed", "wx_none", "tag_source", "tag_custom", "aria_rename", "prompt_rename", "toast_renamed", "toast_name_reset", "toast_rename_fail", "aria_reset_icon", "confirm_reset_icon", "toast_icon_reset", "focus_hint_standard", "focus_hint_high", "daily_title", "daily_caption", "rotate_title", "rotate_caption", "empty_photos", "add_second", "toast_tv_updated", "sending_n", "toast_added", "toast_no_photos", "toast_send_fail", "toast_city_set", "toast_city_nf", "toast_set_fail", "toast_sending_icon", "toast_icon_set", "toast_icon_bad", "diag_collecting", "toast_diag_fail", "toast_copied", "toast_copy_manual", "language", "hint_follows"];
+const KEYS = ["personalize", "screensaver", "screensaver_short", "ss_aerial", "ss_photos", "ss_clock", "focus", "focus_high", "focus_standard", "weather", "city_ph", "set", "add_h", "upload_label", "icons_h", "icons_hint", "feedback_h", "feedback_hint", "diag_show", "diag_copy", "diag_github", "hint_aerial", "hint_photos", "hint_clock", "g_live", "g_live_sub", "g_daily", "g_daily_sub", "g_photo", "g_builtin", "g_auto", "toast_wallpaper", "aria_delete", "confirm_delete", "wx_clear", "wx_partlycloudy", "wx_cloudy", "wx_fog", "wx_rain", "wx_snow", "wx_thunder", "wx_chosen", "wx_auto_btn", "toast_auto", "wx_guessed", "wx_none", "tag_source", "tag_custom", "aria_rename", "prompt_rename", "toast_renamed", "toast_name_reset", "toast_rename_fail", "aria_reset_icon", "confirm_reset_icon", "toast_icon_reset", "focus_hint_standard", "focus_hint_high", "daily_title", "daily_caption", "rotate_title", "rotate_caption", "empty_photos", "add_second", "toast_tv_updated", "sending_n", "toast_added", "toast_no_photos", "toast_send_fail", "toast_city_set", "toast_city_nf", "toast_set_fail", "toast_sending_icon", "toast_icon_set", "toast_icon_bad", "diag_collecting", "toast_diag_fail", "toast_copied", "toast_copy_manual", "language", "hint_follows", "unsplash_how", "unsplash_ph", "unsplash_save", "unsplash_hint_set", "unsplash_hint_none", "unsplash_bad", "unsplash_unverified", "unsplash_saved", "unsplash_cleared"];
 const TEXTS = {
  "zh": [
   "个性化",
@@ -251,7 +261,16 @@ const TEXTS = {
   "已复制",
   "请长按文本框全选后复制",
   "语言",
-  "还没选过，跟随壁纸：航拍壁纸配航拍，其他壁纸配照片，并从这张壁纸开始。选一个就固定下来。"
+  "还没选过，跟随壁纸：航拍壁纸配航拍，其他壁纸配照片，并从这张壁纸开始。选一个就固定下来。",
+  "自动轮换也可以用 Unsplash，需要你自己的免费密钥：在下面的链接注册，创建一个应用（免费的 Demo 级别就够），把它的 Access Key 粘贴到这里。",
+  "粘贴 Access Key",
+  "保存",
+  "密钥已保存，Unsplash 已确认。到电视「个性化 · 自动轮换」里打开 Unsplash 来源。留空并点保存可删除密钥。",
+  "还没有密钥，所以自动轮换里的 Unsplash 保持关闭，直到保存一个有效的密钥。",
+  "Unsplash 不认这个密钥，请检查",
+  "没能向 Unsplash 验证这个密钥（电视联网了吗？），请重试",
+  "密钥已保存",
+  "密钥已清除"
  ],
  "en": [
   "Personalize",
@@ -334,7 +353,16 @@ const TEXTS = {
   "Copied",
   "Long-press the text box, select all and copy",
   "Language",
-  "Not chosen yet, so it follows the wallpaper: aerial films with the aerial wallpaper, photos with a picture, starting from that picture. Choose one to keep it."
+  "Not chosen yet, so it follows the wallpaper: aerial films with the aerial wallpaper, photos with a picture, starting from that picture. Choose one to keep it.",
+  "Auto Wallpapers can also use Unsplash, with your own free key: sign up at the link below, create an application (the free Demo level is enough) and paste its Access Key here.",
+  "Paste the Access Key",
+  "Save",
+  "Key saved and accepted by Unsplash. Turn the source on in Personalize on the TV. Leave the field empty and press Save to remove the key.",
+  "No key yet, so Unsplash stays off in Auto Wallpapers until a valid one is saved.",
+  "Unsplash did not accept this key, please check it",
+  "Could not check the key with Unsplash (is the TV online?). Try again.",
+  "Key saved",
+  "Key cleared"
  ],
  "ru": [
   "Персонализация",
@@ -417,7 +445,16 @@ const TEXTS = {
   "Скопировано",
   "Удерживайте текстовое поле, выделите всё и скопируйте",
   "Язык",
-  "Пока не выбрано, поэтому следует за обоями: аэросъёмка с обоями аэросъёмки, фото с картинкой, начиная с неё. Выберите, чтобы закрепить."
+  "Пока не выбрано, поэтому следует за обоями: аэросъёмка с обоями аэросъёмки, фото с картинкой, начиная с неё. Выберите, чтобы закрепить.",
+  "«Авто-обои» могут брать картинки и с Unsplash, нужен ваш бесплатный ключ: зарегистрируйтесь по ссылке ниже, создайте приложение (хватит бесплатного уровня Demo) и вставьте сюда его Access Key.",
+  "Вставьте Access Key",
+  "Сохранить",
+  "Ключ сохранён, Unsplash его принял. Включите источник в «Персонализации» на ТВ. Оставьте поле пустым и нажмите «Сохранить», чтобы удалить ключ.",
+  "Ключа пока нет, поэтому Unsplash в «Авто-обоях» выключен, пока не сохранён действующий ключ.",
+  "Unsplash не принял этот ключ, проверьте",
+  "Не удалось проверить ключ в Unsplash (ТВ в сети?). Попробуйте ещё раз.",
+  "Ключ сохранён",
+  "Ключ удалён"
  ],
  "uk": [
   "Персоналізація",
@@ -500,7 +537,16 @@ const TEXTS = {
   "Скопійовано",
   "Утримуйте текстове поле, виділіть усе й скопіюйте",
   "Мова",
-  "Ще не вибрано, тож відповідає шпалерам: аерозйомка зі шпалерами аерозйомки, фото з картинкою, починаючи з неї. Виберіть, щоб закріпити."
+  "Ще не вибрано, тож відповідає шпалерам: аерозйомка зі шпалерами аерозйомки, фото з картинкою, починаючи з неї. Виберіть, щоб закріпити.",
+  "«Авто-шпалери» можуть брати зображення й з Unsplash, потрібен ваш безкоштовний ключ: зареєструйтеся за посиланням нижче, створіть застосунок (досить безкоштовного рівня Demo) і вставте сюди його Access Key.",
+  "Вставте Access Key",
+  "Зберегти",
+  "Ключ збережено, Unsplash його прийняв. Увімкніть джерело в «Персоналізації» на ТВ. Залиште поле порожнім і натисніть «Зберегти», щоб видалити ключ.",
+  "Ключа поки немає, тому Unsplash в «Авто-шпалерах» вимкнений, доки не збережено дійсний ключ.",
+  "Unsplash не прийняв цей ключ, перевірте",
+  "Не вдалося перевірити ключ в Unsplash (ТВ у мережі?). Спробуйте ще раз.",
+  "Ключ збережено",
+  "Ключ видалено"
  ],
  "kk": [
   "Жекелендіру",
@@ -583,7 +629,16 @@ const TEXTS = {
   "Көшірілді",
   "Мәтін өрісін ұзақ басып, барлығын таңдап, көшіріңіз",
   "Тіл",
-  "Әлі таңдалмаған, сондықтан түсқағазға ілеседі: аэрожиын түсқағазымен аэрожиын, сурет түсқағазымен фотолар, сол суреттен бастап. Бекіту үшін біреуін таңдаңыз."
+  "Әлі таңдалмаған, сондықтан түсқағазға ілеседі: аэрожиын түсқағазымен аэрожиын, сурет түсқағазымен фотолар, сол суреттен бастап. Бекіту үшін біреуін таңдаңыз.",
+  "«Авто-тұсқағаздар» Unsplash-тан да сурет ала алады, ол үшін өз тегін кілтіңіз керек: төмендегі сілтеме бойынша тіркеліп, қолданба жасаңыз (тегін Demo деңгейі жеткілікті) және оның Access Key кілтін осында қойыңыз.",
+  "Access Key кілтін қойыңыз",
+  "Сақтау",
+  "Кілт сақталды, Unsplash оны қабылдады. Көзді теледидардағы «Жекелендіру» ішінде қосыңыз. Кілтті жою үшін өрісті бос қалдырып, «Сақтау» түймесін басыңыз.",
+  "Кілт әзірге жоқ, сондықтан «Авто-тұсқағаздардағы» Unsplash жарамды кілт сақталғанша өшірулі тұрады.",
+  "Unsplash бұл кілтті қабылдамады, тексеріңіз",
+  "Кілтті Unsplash-та тексеру мүмкін болмады (теледидар желіде ме?). Қайталап көріңіз.",
+  "Кілт сақталды",
+  "Кілт жойылды"
  ]
 };
 const LANGS = Object.keys(TEXTS);
@@ -673,6 +728,7 @@ const weatherNames = { clear: t('wx_clear'), partlycloudy: t('wx_partlycloudy'),
 
 function renderWeather() {
   const w = state.weather || {};
+  $('#unsplashHint').textContent = state.unsplash ? t('unsplash_hint_set') : t('unsplash_hint_none');
   $('#wxNow').textContent = w.celsius !== undefined ? `${w.celsius}° ${weatherNames[w.kind] || ''}` : '—';
   $('#wxPlace').textContent = w.place || '';
   const hint = $('#wxHint'); hint.innerHTML = '';
@@ -744,10 +800,6 @@ function render() {
     if (kind === 'daily' && list.length) {
       list = [{ id: state.latestDaily, kind: 'daily', title: t('daily_title'), caption: t('daily_caption') }, ...list];
     }
-    // Two or more photos: one a day, as on the TV (#27, #194).
-    if (kind === 'photo' && list.length > 1) {
-      list = [{ id: state.rotatePhotos, kind: 'photos', title: t('rotate_title'), caption: t('rotate_caption') }, ...list];
-    }
     if (!list.length && kind !== 'photo') continue;
     const h = document.createElement('h2'); h.textContent = title; root.appendChild(h);
     if (!list.length) {
@@ -781,6 +833,19 @@ $('#file').onchange = async e => {
     toast(state.added ? t('toast_added', { n: state.added }) : t('toast_no_photos'));
   } catch (err) { toast(t('toast_send_fail')); }
   btn.removeAttribute('disabled'); label.textContent = t('upload_label'); e.target.value = '';
+};
+
+$('#unsplashForm').onsubmit = async e => {
+  e.preventDefault();
+  const key = $('#unsplashKey').value.trim();
+  if (!key && !state.unsplash) return;
+  const btn = $('#unsplashBtn'); btn.setAttribute('disabled', '');
+  try {
+    state = await api('api/unsplash', { key }); render();
+    if (!state.ok) toast(t(state.reason === 'unverified' ? 'unsplash_unverified' : 'unsplash_bad'));
+    else { toast(key ? t('unsplash_saved') : t('unsplash_cleared')); $('#unsplashKey').value = ''; }
+  } catch (err) { toast(t('toast_set_fail')); }
+  btn.removeAttribute('disabled');
 };
 
 $('#cityForm').onsubmit = async e => {
