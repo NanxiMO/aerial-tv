@@ -183,6 +183,11 @@ fun WallpaperSheet(
                             AerialSettings.largeClock, AerialSettings::chooseLargeClock,
                         )
                         Choices(
+                            R.string.st_app_content, stringResource(R.string.st_app_content_hint), note,
+                            listOf(true to R.string.st_app_content_on, false to R.string.st_app_content_off),
+                            AerialSettings.appContent, AerialSettings::chooseAppContent,
+                        )
+                        Choices(
                             R.string.st_names, stringResource(R.string.st_names_hint), note,
                             listOf(false to R.string.st_names_focused, true to R.string.st_names_all),
                             AerialSettings.showAllNames, AerialSettings::chooseShowAllNames,

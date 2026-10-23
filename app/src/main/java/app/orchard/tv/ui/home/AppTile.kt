@@ -100,6 +100,7 @@ import kotlin.math.roundToInt
 // D-pad remotes give no tilt to follow, so the lift itself has to read from across the room.
 private const val FOCUSED_SCALE = 1.15f
 private const val PRESSED_SCALE = 1.05f
+private const val SHELF_SCALE = 1.06f
 private val Corner = 12.dp
 private const val RIM_AT_REST = 0.07f
 
@@ -124,6 +125,8 @@ fun AppTile(
     enabled: Boolean,
     moving: Boolean,
     appearDelayMs: Int,
+    /** Focus is up on this app's shelf: the tile stays half lifted, so the shelf reads as its own. */
+    shelfOpen: Boolean = false,
     onFocused: () -> Unit,
     onClick: (Rect?) -> Unit,
     onLongPress: (Rect?) -> Unit,
@@ -160,6 +163,7 @@ fun AppTile(
             reduced -> 1f
             pressed -> PRESSED_SCALE
             focused || moving -> FOCUSED_SCALE
+            shelfOpen -> SHELF_SCALE
             else -> 1f
         },
         // Press answers immediately; focus settles on a spring so rapid D-pad presses retarget
@@ -169,7 +173,7 @@ fun AppTile(
         label = "tile-scale",
     )
     val lift by animateFloatAsState(
-        targetValue = if (focused || moving) 1f else 0f,
+        targetValue = if (focused || moving) 1f else if (shelfOpen) 0.45f else 0f,
         animationSpec = spring(dampingRatio = 1f, stiffness = 380f),
         label = "tile-lift",
     )
