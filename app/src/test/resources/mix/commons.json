@@ -1,0 +1,309 @@
+{
+ "batchcomplete": "",
+ "continue": {
+  "gcmcontinue": "20260416154643|183039744",
+  "continue": "gcmcontinue||"
+ },
+ "query": {
+  "pages": {
+   "200914888": {
+    "pageid": 200914888,
+    "ns": 6,
+    "title": "File:S-charl richting Alp Sesvenna. 21-09-2026. (d.j.b) 09.jpg",
+    "imagerepository": "local",
+    "imageinfo": [
+     {
+      "size": 19936531,
+      "width": 5184,
+      "height": 3456,
+      "thumburl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg/3840px-S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "thumbwidth": 3840,
+      "thumbheight": 2560,
+      "thumbattribs": {
+       "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg/3840px-S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+       "decoding": "async",
+       "loading": "lazy",
+       "width": 3840,
+       "height": 2560
+      },
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/bd/S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:S-charl_richting_Alp_Sesvenna._21-09-2026._(d.j.b)_09.jpg",
+      "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=200914888",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "S-charl richting Alp Sesvenna. 21-09-2026. (d.j.b) 09",
+        "source": "mediawiki-metadata"
+       },
+       "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Famberhorst\" title=\"User:Famberhorst\">Dominicus Johannes Bergsma.</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      },
+      "mime": "image/jpeg"
+     }
+    ]
+   },
+   "198913773": {
+    "pageid": 198913773,
+    "ns": 6,
+    "title": "File:Hadrian's Wall on Housesteads Crags - 06.jpg",
+    "imagerepository": "local",
+    "imageinfo": [
+     {
+      "size": 17283783,
+      "width": 6744,
+      "height": 4500,
+      "thumburl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/Hadrian%27s_Wall_on_Housesteads_Crags_-_06.jpg/3840px-Hadrian%27s_Wall_on_Housesteads_Crags_-_06.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "thumbwidth": 3840,
+      "thumbheight": 2562,
+      "thumbattribs": {
+       "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/Hadrian%27s_Wall_on_Housesteads_Crags_-_06.jpg/3840px-Hadrian%27s_Wall_on_Housesteads_Crags_-_06.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+       "decoding": "async",
+       "loading": "lazy",
+       "width": 3840,
+       "height": 2562
+      },
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Hadrian%27s_Wall_on_Housesteads_Crags_-_06.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Hadrian%27s_Wall_on_Housesteads_Crags_-_06.jpg",
+      "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=198913773",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Hadrian's Wall on Housesteads Crags - 06",
+        "source": "mediawiki-metadata"
+       },
+       "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Benjism89\" title=\"User:Benjism89\">Benjamin Smith</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      },
+      "mime": "image/jpeg"
+     }
+    ]
+   },
+   "199762819": {
+    "pageid": 199762819,
+    "ns": 6,
+    "title": "File:South Downs Way pagebanner.jpg",
+    "imagerepository": "local",
+    "imageinfo": [
+     {
+      "size": 4698789,
+      "width": 8916,
+      "height": 1273,
+      "thumburl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/South_Downs_Way_pagebanner.jpg/3840px-South_Downs_Way_pagebanner.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "thumbwidth": 3840,
+      "thumbheight": 548,
+      "thumbattribs": {
+       "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/South_Downs_Way_pagebanner.jpg/3840px-South_Downs_Way_pagebanner.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+       "decoding": "async",
+       "loading": "lazy",
+       "width": 3840,
+       "height": 548
+      },
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/92/South_Downs_Way_pagebanner.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:South_Downs_Way_pagebanner.jpg",
+      "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=199762819",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "South Downs Way pagebanner",
+        "source": "mediawiki-metadata"
+       },
+       "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Diliff\" title=\"User:Diliff\">Diliff</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 3.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      },
+      "mime": "image/jpeg"
+     }
+    ]
+   },
+   "199181121": {
+    "pageid": 199181121,
+    "ns": 14,
+    "title": "Category:Featured pictures from Macedonian Wikiexpeditions"
+   },
+   "145004660": {
+    "pageid": 145004660,
+    "ns": 6,
+    "title": "File:Tarasp (Taraspsee) gemeente Scuol, 18-09-2023. (actm.) 15.jpg",
+    "imagerepository": "local",
+    "imageinfo": [
+     {
+      "size": 4926261,
+      "width": 4116,
+      "height": 1886,
+      "thumburl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Tarasp_%28Taraspsee%29_gemeente_Scuol%2C_18-09-2023._%28actm.%29_15.jpg/3840px-Tarasp_%28Taraspsee%29_gemeente_Scuol%2C_18-09-2023._%28actm.%29_15.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "thumbwidth": 3840,
+      "thumbheight": 1760,
+      "thumbattribs": {
+       "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Tarasp_%28Taraspsee%29_gemeente_Scuol%2C_18-09-2023._%28actm.%29_15.jpg/3840px-Tarasp_%28Taraspsee%29_gemeente_Scuol%2C_18-09-2023._%28actm.%29_15.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+       "decoding": "async",
+       "loading": "lazy",
+       "width": 3840,
+       "height": 1760
+      },
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Tarasp_%28Taraspsee%29_gemeente_Scuol%2C_18-09-2023._%28actm.%29_15.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Tarasp_(Taraspsee)_gemeente_Scuol,_18-09-2023._(actm.)_15.jpg",
+      "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=145004660",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Tarasp (Taraspsee) gemeente Scuol, 18-09-2023. (actm.) 15",
+        "source": "mediawiki-metadata"
+       },
+       "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Agnes_Monkelbaan\" title=\"User:Agnes Monkelbaan\">Agnes Monkelbaan</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      },
+      "mime": "image/jpeg"
+     }
+    ]
+   },
+   "182554647": {
+    "pageid": 182554647,
+    "ns": 6,
+    "title": "File:Obersaxen Mundaun, 28-09-2025. (actm.) 07.jpg",
+    "imagerepository": "local",
+    "imageinfo": [
+     {
+      "size": 11916644,
+      "width": 5184,
+      "height": 3030,
+      "thumburl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/32/Obersaxen_Mundaun%2C_28-09-2025._%28actm.%29_07.jpg/3840px-Obersaxen_Mundaun%2C_28-09-2025._%28actm.%29_07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "thumbwidth": 3840,
+      "thumbheight": 2244,
+      "thumbattribs": {
+       "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/32/Obersaxen_Mundaun%2C_28-09-2025._%28actm.%29_07.jpg/3840px-Obersaxen_Mundaun%2C_28-09-2025._%28actm.%29_07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+       "decoding": "async",
+       "loading": "lazy",
+       "width": 3840,
+       "height": 2244
+      },
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/32/Obersaxen_Mundaun%2C_28-09-2025._%28actm.%29_07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Obersaxen_Mundaun,_28-09-2025._(actm.)_07.jpg",
+      "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=182554647",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Obersaxen Mundaun, 28-09-2025. (actm.) 07",
+        "source": "mediawiki-metadata"
+       },
+       "Artist": {
+        "value": ""
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      },
+      "mime": "image/jpeg"
+     }
+    ]
+   },
+   "1": {
+    "pageid": 1,
+    "ns": 6,
+    "title": "File:Synthetic.png",
+    "imagerepository": "local",
+    "imageinfo": [
+     {
+      "size": 19936531,
+      "width": 5184,
+      "height": 3456,
+      "thumburl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg/3840px-S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "thumbwidth": 3840,
+      "thumbheight": 2560,
+      "thumbattribs": {
+       "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg/3840px-S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+       "decoding": "async",
+       "loading": "lazy",
+       "width": 3840,
+       "height": 2560
+      },
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/bd/S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:S-charl_richting_Alp_Sesvenna._21-09-2026._(d.j.b)_09.jpg",
+      "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=200914888",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "S-charl richting Alp Sesvenna. 21-09-2026. (d.j.b) 09",
+        "source": "mediawiki-metadata"
+       },
+       "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Famberhorst\" title=\"User:Famberhorst\">Dominicus Johannes Bergsma.</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      },
+      "mime": "image/png"
+     }
+    ]
+   },
+   "2": {
+    "pageid": 2,
+    "ns": 6,
+    "title": "File:Small.jpg",
+    "imagerepository": "local",
+    "imageinfo": [
+     {
+      "size": 19936531,
+      "width": 2560,
+      "height": 1707,
+      "thumburl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg/3840px-S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "thumbwidth": 3840,
+      "thumbheight": 2560,
+      "thumbattribs": {
+       "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg/3840px-S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+       "decoding": "async",
+       "loading": "lazy",
+       "width": 3840,
+       "height": 2560
+      },
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/bd/S-charl_richting_Alp_Sesvenna._21-09-2026._%28d.j.b%29_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:S-charl_richting_Alp_Sesvenna._21-09-2026._(d.j.b)_09.jpg",
+      "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=200914888",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "S-charl richting Alp Sesvenna. 21-09-2026. (d.j.b) 09",
+        "source": "mediawiki-metadata"
+       },
+       "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Famberhorst\" title=\"User:Famberhorst\">Dominicus Johannes Bergsma.</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      },
+      "mime": "image/jpeg"
+     }
+    ]
+   }
+  }
+ }
+}
