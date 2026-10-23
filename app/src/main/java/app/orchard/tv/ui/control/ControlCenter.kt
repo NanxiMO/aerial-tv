@@ -109,6 +109,15 @@ import app.orchard.tv.update.Updates
 import app.orchard.tv.wallpaper.PhoneServer
 import java.time.LocalDateTime
 
+/** Which button in Control Center's top row opened the last page; focus returns to it. */
+private enum class MainAction { Inputs, Network }
+
+/**
+ * Kept outside the composition on purpose: a page replaces the panel, so the panel is disposed
+ * while the page is open and a remembered state would forget which button to focus on return.
+ */
+private var lastMainAction = MainAction.Inputs
+
 /**
  * tvOS Control Center: a glass panel that drops in from the top-right corner over a blurred Home.
  * Inputs open as a second page inside the same panel, the way tvOS shows audio routes.
@@ -186,11 +195,17 @@ fun ControlCenter(
 @Composable
 private fun MainPage(vm: HomeViewModel, now: LocalDateTime, takeFocus: Boolean, onOpen: (android.content.Intent) -> Unit) {
     val context = LocalContext.current
-    val first = remember { FocusRequester() }
+    val inputsButton = remember { FocusRequester() }
+    val networkButton = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         if (!takeFocus) return@LaunchedEffect
         withFrameNanos { }
-        runCatching { first.requestFocus() }
+        // Come back to the button that opened the page we are returning from, not to Inputs.
+        val requester = when (lastMainAction) {
+            MainAction.Inputs -> inputsButton
+            MainAction.Network -> networkButton
+        }
+        runCatching { requester.requestFocus() }
     }
 
     Column {
@@ -219,7 +234,8 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, takeFocus: Boolean, 
 
         Spacer(Modifier.height(16.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            RoundButton(Glyph.Input, stringResource(R.string.cc_inputs), focusRequester = first) {
+            RoundButton(Glyph.Input, stringResource(R.string.cc_inputs), focusRequester = inputsButton) {
+                lastMainAction = MainAction.Inputs
                 // TCL lists no inputs to Android; its own input panel is the next best thing.
                 vm.overlay = if (vm.sources.isEmpty() && SystemProbe.openInputPicker(context)) Overlay.None
                 else Overlay.ControlCenter(CcPage.Inputs)
@@ -227,7 +243,9 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, takeFocus: Boolean, 
             RoundButton(
                 when (vm.network.kind) { NetKind.Ethernet -> Glyph.Ethernet; NetKind.Offline -> Glyph.Offline; else -> Glyph.Wifi },
                 stringResource(R.string.cc_network),
+                focusRequester = networkButton,
             ) {
+                lastMainAction = MainAction.Network
                 // Picked and joined inside Control Center when the firmware's framework allows it;
                 // otherwise the firm's Wi-Fi page still is one press away.
                 if (WifiNetworks.available(context)) vm.overlay = Overlay.ControlCenter(CcPage.Networks)
