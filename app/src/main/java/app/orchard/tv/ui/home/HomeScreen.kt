@@ -711,6 +711,12 @@ fun HomeScreen(
                 if (AerialSettings.nameMode == NameMode.HeroTitle) {
                     val hero = apps.getOrNull(focusedIndex) ?: apps.firstOrNull()
                     if (hero != null) {
+                        // With the app's shelf up, the name moves above it (above its tabs, when it has
+                        // any), out of the cards' way; where there is no room under the clock it fades out.
+                        val heroY = metrics.topRowY - 74.dp
+                        val shelfTop = metrics.shelfRowY - if ((shelf?.tabs?.size ?: 0) > 1) 44.dp else 0.dp
+                        val heroUp = shelfTop - 58.dp
+                        val roomAbove = heroUp >= 56.dp
                         BasicText(
                             text = hero.label,
                             style = Type.Title.copy(fontSize = 42.sp, letterSpacing = (-0.02).em),
@@ -718,8 +724,12 @@ fun HomeScreen(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
                                 .align(Alignment.TopStart)
-                                .padding(start = metrics.margin, top = metrics.topRowY - 74.dp)
-                                .graphicsLayer { alpha = 1f - (scroll.value / collapsePx * 1.6f).coerceIn(0f, 1f) },
+                                .padding(start = metrics.margin, top = heroY)
+                                .graphicsLayer {
+                                    val p = shelfProgress.coerceIn(0f, 1f)
+                                    translationY = if (roomAbove) -(heroY - heroUp).toPx() * p else 0f
+                                    alpha = (1f - (scroll.value / collapsePx * 1.6f).coerceIn(0f, 1f)) * if (roomAbove) 1f else 1f - p
+                                },
                         )
                     }
                 }
