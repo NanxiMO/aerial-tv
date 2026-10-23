@@ -16,8 +16,8 @@ android {
         // Android 5.0. Compose 1.10 and later need 6.0, so the Compose BOM below stays on 1.9.
         minSdk = 21
         targetSdk = 34
-        versionCode = 41
-        versionName = "1.38"
+        versionCode = 43
+        versionName = "1.40"
         // `./gradlew -Pdiag ...`: a build for one reporter's TV whose logcat shows no app lines;
         // see system/DiagLog.kt.
         val diag = project.hasProperty("diag")
@@ -72,6 +72,9 @@ android {
         compose = true
         buildConfig = true
     }
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
     packaging {
         resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}", "DebugProbesKt.bin", "kotlin-tooling-metadata.json")
     }
@@ -82,6 +85,8 @@ kotlin {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.17")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     // Compose 1.9.5, the last release that runs on Android 5.0 (1.10 raised minSdk to 23).
     val composeBom = platform("androidx.compose:compose-bom:2025.11.01")

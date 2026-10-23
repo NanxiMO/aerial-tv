@@ -215,4 +215,5 @@
     <string name="st_app_content_on">Көрсету</string>
     <string name="st_app_content_off">Өшірулі</string>
     <string name="st_app_content_hint">«Қарауды жалғастыру» немесе өз топтамалары бар қолданбаның бірінші қатардағы тақтайшасының үстінде көрсеткі пайда болады. Оларды көру үшін «жоғары» басыңыз, әр арнаның өз қойындысы бар. Басқа қолданбалар өзгеріссіз қалады.</string>
+    <string name="tile_stock_home">ТД басты экраны</string>
 </resources>

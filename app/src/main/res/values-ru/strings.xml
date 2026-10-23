@@ -215,4 +215,5 @@
     <string name="st_app_content_on">Показывать</string>
     <string name="st_app_content_off">Выкл.</string>
     <string name="st_app_content_hint">У приложения с «Продолжить просмотр» или своими подборками над плиткой в первом ряду появляется стрелка. Нажмите «вверх», чтобы увидеть их, у каждого канала своя вкладка. Остальные приложения остаются как есть.</string>
+    <string name="tile_stock_home">Главный экран ТВ</string>
 </resources>

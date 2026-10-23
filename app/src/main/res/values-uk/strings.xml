@@ -215,4 +215,5 @@
     <string name="st_app_content_on">Показувати</string>
     <string name="st_app_content_off">Вимк.</string>
     <string name="st_app_content_hint">У застосунку з «Продовжити перегляд» або власними добірками над плиткою в першому ряду з’являється стрілка. Натисніть «вгору», щоб побачити їх, у кожного каналу своя вкладка. Інші застосунки лишаються як є.</string>
+    <string name="tile_stock_home">Головний екран ТБ</string>
 </resources>
