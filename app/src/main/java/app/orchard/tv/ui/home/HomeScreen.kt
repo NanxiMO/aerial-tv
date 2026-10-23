@@ -6,6 +6,7 @@ import android.os.Build
 import android.view.KeyEvent as NativeKeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -29,8 +30,11 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.BlurEffect
@@ -75,9 +80,13 @@ import app.orchard.tv.ui.control.ControlCenter
 import app.orchard.tv.ui.wallpaper.WallpaperSheet
 import app.orchard.tv.wallpaper.ScreensaverMode
 import app.orchard.tv.wallpaper.Wallpapers
+import app.orchard.tv.ui.components.Pressable
 import app.orchard.tv.ui.components.liquidGlass
+import app.orchard.tv.ui.theme.Glyph
+import app.orchard.tv.ui.theme.GlyphIcon
 import app.orchard.tv.ui.theme.LocalReducedMotion
 import app.orchard.tv.ui.theme.Motion
+import app.orchard.tv.ui.theme.Palette
 import app.orchard.tv.ui.theme.Type
 import androidx.compose.runtime.snapshotFlow
 import app.orchard.tv.system.DiagLog
@@ -174,6 +183,7 @@ fun HomeScreen(
     val requesters = remember { HashMap<String, FocusRequester>() }
     fun requester(key: String) = requesters.getOrPut(key) { FocusRequester() }
     val pillRequester = remember { FocusRequester() }
+    val inputRequester = remember { FocusRequester() }
 
     var focusedKey by remember { mutableStateOf<String?>(null) }
     // Where focus goes when the overlay closes, when that is not the tile it was on. Kept apart
@@ -181,9 +191,13 @@ fun HomeScreen(
     var focusAfterOverlay by remember { mutableStateOf<String?>(null) }
     var indexAfterOverlay by remember { mutableStateOf(0) }
     var pillFocused by remember { mutableStateOf(false) }
+    var inputFocused by remember { mutableStateOf(false) }
+    // True while focus sits on either top-right control, so moving between them does not bounce
+    // back into the grid the way the window's very first focus does.
+    var topRowActive by remember { mutableStateOf(false) }
     var lastFocusedIndex by remember { mutableStateOf(0) }
     val focusedIndex = apps.indexOfFirst { it.key == focusedKey }
-    val focusedRow = if (pillFocused || focusedIndex < 0) 0 else focusedIndex / COLUMNS
+    val focusedRow = if (pillFocused || inputFocused || focusedIndex < 0) 0 else focusedIndex / COLUMNS
     val gridEnabled = overlay == Overlay.None
 
     // The aerial wallpaper's film, and how far it shows through.
@@ -241,11 +255,12 @@ fun HomeScreen(
         withFrameNanos { }
         val wanted = focusAfterOverlay
         focusAfterOverlay = null
-        if (wanted != null) { focusedKey = wanted; pillFocused = false }
+        if (wanted != null) { focusedKey = wanted; pillFocused = false; inputFocused = false }
         val index = apps.indexOfFirst { it.key == focusedKey }
         // A tile that went while the overlay was up (hidden, put in a folder, a folder ungrouped)
         // leaves focus where it was.
         if (pillFocused && focusedKey != null) runCatching { pillRequester.requestFocus() }
+        else if (inputFocused) runCatching { inputRequester.requestFocus() }
         else focusApp(if (index >= 0) index else if (wanted != null) indexAfterOverlay else lastFocusedIndex)
     }
     // A folder whose last app left closes.
@@ -319,13 +334,16 @@ fun HomeScreen(
                         // On an app tile, Menu opens that app's menu (AppTile): remotes whose held
                         // OK never reads as held had no other way to it (issue #28). Control
                         // Center stays one press up, on the status pill, where Menu still opens it.
-                        if (overlay == Overlay.None && !pillFocused && focusedIndex >= 0) return@onPreviewKeyEvent false
+                        if (overlay == Overlay.None && !pillFocused && !inputFocused && focusedIndex >= 0) return@onPreviewKeyEvent false
                         // Inside a folder, Menu is the focused app's, as on Home.
                         if (overlay is Overlay.Folder) return@onPreviewKeyEvent false
                         vm.overlay = if (overlay is Overlay.ControlCenter) Overlay.None else Overlay.ControlCenter()
                         true
                     }
                     NativeKeyEvent.KEYCODE_TV_INPUT -> {
+                        // TCL's firmware opens its own input panel on this key; answering it here
+                        // as well drew both panels at once. Other brands have no panel of their own.
+                        if (Build.MANUFACTURER.equals("TCL", ignoreCase = true)) return@onPreviewKeyEvent false
                         vm.overlay = Overlay.ControlCenter(CcPage.Inputs)
                         true
                     }
@@ -471,6 +489,8 @@ fun HomeScreen(
                                 focusedKey = app.key
                                 lastFocusedIndex = index
                                 pillFocused = false
+                                inputFocused = false
+                                topRowActive = false
                             },
                             onClick = { bounds ->
                                 val mover = moving
@@ -557,6 +577,20 @@ fun HomeScreen(
                     toSaver = { toSaver.value },
                 )
             }
+            // Input source, one press away: the pill stays the Control Center, this opens the list.
+            InputButton(
+                enabled = gridEnabled && moving == null,
+                focusRequester = inputRequester,
+                onFocused = { gained ->
+                    if (gained) {
+                        inputFocused = true
+                        pillFocused = false
+                        topRowActive = true
+                    }
+                },
+                onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Inputs, direct = true) },
+                modifier = Modifier.padding(end = 10.dp),
+            )
             StatusPill(
                 now = now,
                 network = vm.network,
@@ -567,10 +601,12 @@ fun HomeScreen(
                 onFocused = { gained ->
                     // The window hands its first focus to the top-most control; the top row is where Home starts.
                     if (gained) {
-                        if (focusedKey == null) {
+                        if (focusedKey == null && !topRowActive) {
                             if (apps.isNotEmpty()) focusApp(0)
                         } else {
                             pillFocused = true
+                            inputFocused = false
+                            topRowActive = true
                         }
                     }
                 },
@@ -604,6 +640,7 @@ fun HomeScreen(
         ControlCenter(
             visible = overlay is Overlay.ControlCenter,
             page = (overlay as? Overlay.ControlCenter)?.page ?: CcPage.Main,
+            direct = (overlay as? Overlay.ControlCenter)?.direct ?: false,
             vm = vm,
             now = now,
             onOpen = { vm.overlay = Overlay.None; onOpen(it) },
@@ -717,5 +754,44 @@ fun HomeScreen(
         NoticeBanner(vm.notice, Modifier.align(Alignment.TopCenter).padding(top = 24.dp))
 
         Screensaver(visible = vm.screensaverVisible, apps = apps, now = now, skips = vm.screensaverSkips, film = liveFilm.takeIf { filmSaver })
+    }
+}
+
+
+/**
+ * The input source, sitting next to the status pill so switching HDMI/AV/TV is one press away.
+ * Shaped like the pill (same height, same focus treatment) so the two read as a single row.
+ */
+@Composable
+private fun InputButton(
+    enabled: Boolean,
+    focusRequester: FocusRequester,
+    onFocused: (Boolean) -> Unit,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Pressable(
+        onClick = onClick,
+        enabled = enabled,
+        focusRequester = focusRequester,
+        focusedScale = 1.08f,
+        modifier = modifier,
+    ) { state ->
+        LaunchedEffect(state.focused) { onFocused(state.focused) }
+        val bg by animateColorAsState(
+            if (state.focused) Palette.Focus else Color.White.copy(alpha = 0.16f),
+            tween(160, easing = Motion.EaseOut), label = "input-bg",
+        )
+        val fg = if (state.focused) Palette.OnFocus else Color.White.copy(alpha = 0.9f)
+        Box(
+            Modifier
+                .clip(RoundedCornerShape(50))
+                .background(bg)
+                .height(34.dp)
+                .width(46.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            GlyphIcon(Glyph.Input, fg, 17.dp)
+        }
     }
 }

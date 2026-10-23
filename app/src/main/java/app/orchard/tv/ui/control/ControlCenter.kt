@@ -108,11 +108,13 @@ fun ControlCenter(
     now: LocalDateTime,
     onOpen: (android.content.Intent) -> Unit,
     onClose: () -> Unit,
+    // Opened straight on a sub-page (the input button on Home): Back leaves instead of stepping up.
+    direct: Boolean = false,
 ) {
     BackHandler(enabled = visible) {
         when (page) {
             CcPage.Main -> onClose()
-            CcPage.Inputs -> vm.overlay = Overlay.ControlCenter(CcPage.Main)
+            CcPage.Inputs -> if (direct) onClose() else vm.overlay = Overlay.ControlCenter(CcPage.Main)
             CcPage.InputSettings -> vm.overlay = Overlay.ControlCenter(CcPage.Inputs)
             CcPage.Update, CcPage.Setup -> vm.overlay = Overlay.ControlCenter(CcPage.Main)
         }

@@ -1,6 +1,10 @@
 package app.orchard.tv
 
 import android.app.Application
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.SystemClock
 import androidx.compose.runtime.getValue
@@ -41,7 +45,7 @@ import kotlinx.coroutines.withContext
 
 sealed interface Overlay {
     data object None : Overlay
-    data class ControlCenter(val page: CcPage = CcPage.Main) : Overlay
+    data class ControlCenter(val page: CcPage = CcPage.Main, val direct: Boolean = false) : Overlay
     /** [inFolder]: the menu was opened inside that folder, and closes back to it. */
     data class AppMenu(val key: String, val anchor: Rect, val inFolder: String? = null) : Overlay
     data class Folder(val id: String) : Overlay
@@ -103,6 +107,14 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         offerSetupOnce()
         // An input's device or name, chosen from its tile's menu or the phone page.
         viewModelScope.launch { snapshotFlow { SourceLooks.all }.drop(1).collect { if (loaded) arrange() } }
+        // Aerial is direct-boot aware so it can draw before the firmware's own launcher does. Until
+        // the user is unlocked the package manager only answers with direct-boot aware apps, so the
+        // first load is short: load again the moment credential storage becomes readable.
+        if (Build.VERSION.SDK_INT >= 24) {
+            app.registerReceiver(object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) = reload()
+            }, IntentFilter(Intent.ACTION_USER_UNLOCKED))
+        }
     }
 
     /**
