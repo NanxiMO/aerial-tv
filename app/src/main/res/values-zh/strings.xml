@@ -125,6 +125,10 @@
     <string name="st_clock_small">小</string>
     <string name="st_clock_large">大</string>
     <string name="st_clock_size_hint">小：时间和天气在角上一行小字。大：屏幕上方一个大时钟，上面是日期，下面是天气。</string>
+    <string name="st_app_content">App 内容</string>
+    <string name="st_app_content_on">显示</string>
+    <string name="st_app_content_off">不显示</string>
+    <string name="st_app_content_hint">在第一排上方显示选中 App 提供的内容：继续观看和推荐，像 Google TV 那样。没有提供内容的 App 仍显示壁纸。</string>
     <string name="st_names">App 名称</string>
     <string name="st_names_focused">只显示选中的</string>
     <string name="st_names_all">全部显示</string>

@@ -23,6 +23,7 @@ app/src/main/java/app/orchard/tv/
 │   ├── components/LiquidGlass.kt  面板的 Liquid Glass 材质（取模糊版壁纸里面板身后的一块）和玻璃边缘
 │   ├── home/HomeScreen.kt   首页布局：网格几何、滚动、焦点管理、各浮层挂载、返回键
 │   ├── home/AppTile.kt      单个磁贴：聚焦弹簧、阴影、柔光、视差、边缘回弹、长按、移动抖动
+│   ├── home/ShelfRow.kt     第一排上方的 App 内容：摘要 + 一排海报卡片（单个焦点目标，自己管理选中项）
 │   ├── home/HomeChrome.kt   背景（AmbientBackground）、大时钟、右上角状态胶囊、时间格式
 │   ├── home/Overlays.kt     长按菜单、隐藏的 App 面板、MenuRow、MiniTile
 │   ├── home/FolderView.kt   打开的文件夹
@@ -36,8 +37,12 @@ app/src/main/java/app/orchard/tv/
 │   ├── Images.kt            解码裁剪、首页压暗烘焙、抖动、box blur
 │   ├── Aerials.kt           读取 assets/aerials.json（Apple 航拍目录）；AerialFormats：这台电视能播哪档画质
 │   └── PhoneServer.kt       NanoHTTPD 手机配置页 + 二维码生成
+├── shelf/
+│   ├── Shelf.kt             TvProvider 读取：各 App 的「继续观看」和预览频道节目，一次读完按包名分组缓存；ContentObserver 失效
+│   ├── ShelfRows.kt         纯函数：排序、去重、过滤、宽高比（有 JVM 单元测试）
+│   └── ShelfImages.kt       卡片图和背景图：http(s)/content/android.resource，LRU、并发上限、失败主机 60 秒内跳过
 ├── settings/
-│   └── AerialSettings.kt    Aerial 自己的偏好（SharedPreferences "settings"）：焦点样式 FocusStyle（默认高对比度）、固定到主屏幕的信号源、开机信号源、屏保开始时间、家长密码（SHA-256，解锁 10 分钟或按 HOME 重新上锁）
+│   └── AerialSettings.kt    Aerial 自己的偏好（SharedPreferences "settings"）：焦点样式 FocusStyle（默认高对比度）、App 内容（默认显示）、固定到主屏幕的信号源、开机信号源、屏保开始时间、家长密码（SHA-256，解锁 10 分钟或按 HOME 重新上锁）
 ├── update/
 │   └── Updates.kt           每 3 小时读一次官网 download/version.txt，有新版时控制中心提示；点「下载并安装」才下载 APK 并交给系统安装器（见「升级」）
 ├── weather/
@@ -239,3 +244,14 @@ NanoHTTPD 监听 8790 端口，路径前缀是 8 位随机令牌（每次打开�
 - 依赖：Compose BOM 2026.02.01、activity-compose、lifecycle-viewmodel-compose、core-ktx、NanoHTTPD 2.3.1、ZXing core 3.5.3。
 - 航拍目录由 Apple 的 `resources-16.tar` 生成（生成方法见 HANDOFF.md）。
 - 信号源磁贴的 Apple TV、PlayStation 标志：Simple Icons 16.35.0（CC0），只用来标明接的是什么设备。
+
+## App 内容（Top Shelf）
+
+焦点停在第一排某个 App 上时，屏幕上半部分换成这个 App 自己发布的内容：上面是选中节目的标题和简介，下面一排海报卡片；背景换成选中卡片的图（模糊加压暗）。按「上」进入卡片，左右移动，确定键打开节目，「下」或返回键回到 App。App 没有发布内容、焦点进入网格或在个性化里关掉「App 内容」时，回到壁纸。选了航拍壁纸时，显示 App 内容期间航拍不播放。
+
+- **数据**（`shelf/Shelf.kt`）：系统 TvProvider 的 `watch_next_program`、`preview_program`、`channel` 三张表（Android 8.0+）。Aerial 不是系统应用，拿不到 `ACCESS_ALL_EPG_DATA`（signature|privileged）；`READ_TV_LISTINGS`（dangerous，`tools/install.sh` 用 adb 授予）就能读到所有 App 的行（索尼 BRAVIA_4K_VH2 / Android 12 实测；1.27 记的「读别的 App 的频道要 ACCESS_ALL_EPG_DATA」只对带 selection 的查询成立）。没有这个权限的调用方，TvProvider 不接受任何 selection 和 sortOrder（「Selection not allowed」，Android TV 12 模拟器），所以三张表各读一次整表，在内存里按包名分组，结果缓存；第一排的 App 进首页时就一起读好。`ContentObserver` 监听 `content://android.media.tv`（启动时即注册，不等权限），有变化 1 秒防抖后才重读；只查卡片用到的列。
+- **排序**（`ShelfRows.arrange`，有单元测试）：先「继续观看」（最近的在前），再按频道顺序取预览节目（同一频道按 weight 从大到小）；没有链接或标题的去掉，同一链接只留一次，最多 20 条。频道的 `browsable` 由系统桌面写；一个都不是 browsable 时（系统桌面从没问过），就当全部可见，免得一条都没有。
+- **图片**（`shelf/ShelfImages.kt`）：卡片图按聚焦放大后的像素解码；背景图缩小模糊（`Images.frost`）再压暗（`Images.shadeForHome`），所以 Emby 那种 300px 的海报做背景也不糊，绘制时仍是一张全屏图。Emby 等媒体服务器在局域网里用 http 和裸 IP 提供图片，域名配置写不出来，所以 `network_security_config` 的 base-config 允许明文（Aerial 自己只在原来列明的几处回退到 http）。同时最多 3 个请求，失败重试一次，连不上的主机 60 秒内跳过（排队中的请求也跳过；服务器回 404 之类只算这一张没有图，不重试，也不影响同一主机的其他图，Emby 会给发布了链接却没有图的条目回 404），单张最大 8 MB；图没到之前卡片显示标题。
+- **打开**：`Intent.parseUri(intent_uri)`，限定 `setPackage(发布者)`，卡片不能拉起别的 App；打开失败就打开 App 本身；家长密码锁着的设置类 App 和它的磁贴一样先要密码。
+- **动效**：一个连续的进度值（弹簧，阻尼 1、刚度 140）驱动全部变化：选了大时钟时，大时钟缩向角落并淡出，同一角的小时钟淡入（小时钟本来就在角上，不动）；摘要和卡片行淡入并上移 14dp；背景由 `HomeBackground` 的 Crossfade 交叉淡化。全部只用 `graphicsLayer`，不重排；弹簧可以中途掉头。焦点在 App 之间移动时先等约 0.2 秒再切换，扫过一排 App 不会每个都闪一下；换背景同样等 0.2 秒。离开卡片行时保留选中项，行、摘要和背景始终一致。
+- **焦点**：卡片行是一个焦点目标，自己处理方向键和选中项，不参与 Compose 的二维焦点搜索。文件夹和信号源磁贴没有 App 内容。第一排磁贴用 `focusProperties { up = shelfRequester }` 把「上」指向卡片行；在卡片行时，来源 App 的磁贴保持半浮起（`AppTile.shelfOpen`）。

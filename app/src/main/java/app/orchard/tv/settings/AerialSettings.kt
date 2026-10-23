@@ -85,6 +85,12 @@ object AerialSettings {
     /** Every app's name under its tile, not only the focused one's (issue #28), the top row's on the glass plate too. */
     var showAllNames by mutableStateOf(false); private set
 
+    /**
+     * Above the top row, the focused app's own programs (watch next and its channels) as a row of
+     * cards, as on Google TV and tvOS's top shelf. Apps that publish none keep the wallpaper.
+     */
+    var appContent by mutableStateOf(true); private set
+
     /** Back on Home's top row starts the screensaver, as on tvOS; off for homes where it gets pressed by accident (issue #94). */
     var backStartsScreensaver by mutableStateOf(true); private set
 
@@ -136,6 +142,7 @@ object AerialSettings {
             else -> UiSounds.Aerial
         }
         backStartsScreensaver = prefs.getBoolean("back_starts_screensaver", true)
+        appContent = prefs.getBoolean("app_content", true)
         screensaverMinutes = prefs.getInt("screensaver_minutes", DEFAULT_SCREENSAVER_MINUTES)
         aerialQuality = AerialQuality.of(prefs.getString("aerial_quality", null))
     }
@@ -209,6 +216,11 @@ object AerialSettings {
     fun chooseShowAllNames(on: Boolean) {
         showAllNames = on
         app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putBoolean("show_all_names", on) }
+    }
+
+    fun chooseAppContent(on: Boolean) {
+        appContent = on
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putBoolean("app_content", on) }
     }
 
     fun chooseBackStartsScreensaver(on: Boolean) {
