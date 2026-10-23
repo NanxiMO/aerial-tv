@@ -187,7 +187,19 @@ adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c 
 
 cyberui 起来后以 uid 1000 去读 Settings 里的「当前桌面包」，读到 `app.orchard.tv` 又不是自己，在 `FKPageConfigManager.setIs4KEnv` 撞 uid 校验自杀，顺手把 Aerial force-crash 一次。属固件侧行为，Aerial 无过错。
 
-**修复**：`cmd package set-home-activity --user 0 app.orchard.tv/.MainActivity`（执行后 `isDefault=true`）。修复后下一次冷启动（09:28:50 开机）日志里 cyberui 只剩 `am_proc_start`（`empty=true` 的空进程，挂着 `LauncherUpdateService` / `RestartService` 两个 TCL 常驻服务），**没有 `am_create_activity`**，也就没抢前台；连按两次 Home + 显式发 HOME intent 都直接命中 `app.orchard.tv/.MainActivity`。
+**修复**：`cmd package set-home-activity --user 0 app.orchard.tv/.MainActivity`（执行后 `isDefault=true`）。
+
+**真重启复验**（2026-10-23 09:36，`adb reboot` 完整冷启动）：
+
+| 指标 | 修复前（08:42） | 修复后（09:36） |
+|---|---|---|
+| `com.tcl.cyberui` 的 `am_create_activity` | 1 次（抢前台 1.2 秒） | **0 次** |
+| `com.tcl.cyberui` 的 `am_crash` | 1 次（`setIs4KEnv`） | **0 次** |
+| `am_proc_start` | 有 | 只有 1 次 `[added application]`，空进程 |
+| Aerial 被 force-crash | 有 | 无（只剩 CE 存储那 2 次） |
+| 前台采样 | 闪一下 TCL 再回 Aerial | 10 次连续采样全是 `app.orchard.tv/.MainActivity` |
+
+重连过程：`adb reboot` → 35 秒后 adb 恢复（uptime 26.85s）→ 前台已是 Aerial。剩余问题只有「CE 存储未解锁导致前 2 次创建崩溃」那条（见「已知问题」第 1 条），即约 2 秒黑屏。
 
 ### 3. 「下载并安装」自动升级不可用
 
