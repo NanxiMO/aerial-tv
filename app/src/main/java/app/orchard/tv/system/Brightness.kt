@@ -16,9 +16,9 @@ import androidx.core.content.ContextCompat
  * - Sony BRAVIA: the screen brightness setting changes but the backlight does not (no backlight in
  *   the display config); Control Center opens Sony's picture settings, which DISPLAY_SETTINGS
  *   resolves to. Reported on a BRAVIA VH1, Android 12 (GitHub issue #2).
- * - Xiaomi without "picture_backlight" (MiTV-ASTP0 Android 9, Mi TV 4A, recent Redmi, issue #23):
- *   the screen brightness setting changes but the backlight does not; Control Center opens the
- *   TV's settings instead.
+ * - Xiaomi without "picture_backlight": the standard Settings.System screen brightness is the only
+ *   path left; some firmwares apply it straight away (the slider then just works) and some ignore
+ *   it, where the TV's own picture settings remain the fallback.
  * - Others: the standard Settings.System screen brightness, 0–255. Writing it needs the "modify
  *   system settings" app-op. Both are granted by tools/install.sh; without them Control Center
  *   opens the TV's own picture settings instead.
@@ -32,9 +32,6 @@ object Brightness {
     private fun isTcl(context: Context) =
         runCatching { context.packageManager.getPackageInfo("com.tcl.settings", 0) }.isSuccess
 
-    private fun isXiaomi(context: Context) =
-        runCatching { context.packageManager.getPackageInfo("com.xiaomi.mitv.settings", 0) }.isSuccess
-
     private fun isSony(context: Context) =
         runCatching { context.packageManager.getPackageInfo("com.sony.dtv.configsettings", 0) }.isSuccess
 
@@ -46,10 +43,11 @@ object Brightness {
             Settings.Global.getInt(r, XIAOMI_BACKLIGHT, 50) / 100f
         } else {
             // TCL and Sony drive the backlight through their own TV services and ignore the system
-            // setting (TCL MT5879, Sony BRAVIA VH1, Xiaomi without picture_backlight); Control
-            // Center opens their picture panels.
+            // setting (TCL MT5879, Sony BRAVIA VH1); Control Center opens their picture panels.
+            // Xiaomi TVs without "picture_backlight" are not excluded: the slider tries the system
+            // setting and the picture panel is still one tap away in the TV's own settings.
             // Before Android 6.0 WRITE_SETTINGS is granted at install.
-            if (isTcl(context) || isSony(context) || isXiaomi(context) || Build.VERSION.SDK_INT >= 23 && !Settings.System.canWrite(context)) return null
+            if (isTcl(context) || isSony(context) || Build.VERSION.SDK_INT >= 23 && !Settings.System.canWrite(context)) return null
             Settings.System.getInt(r, Settings.System.SCREEN_BRIGHTNESS, 128) / 255f
         }
     }
