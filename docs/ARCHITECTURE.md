@@ -7,7 +7,7 @@
 ```
 app/src/main/java/app/orchard/tv/
 ├── MainActivity.kt          HOME Activity：窗口设置、960×540 画布密度、广播/网络监听、空闲计时与桌面内屏保、启动 App
-├── AppInfoActivity.kt       其他 App 发来「应用信息」Intent 时，在固件没有这个页面的电视上弹出 Aerial 自己的应用信息（单独的任务，叠在请求方上面）
+├── AppInfoActivity.kt       其他 App 发来「应用信息」等设置 Intent 时，在固件没有这些页面的电视上弹出 Aerial 自己的应用信息（单独的任务，叠在请求方上面）
 ├── HomeViewModel.kt         首页状态：App 列表、浮层（Overlay）、系统状态（网络/音量/亮度/信号源/桌面状态）、移动模式
 ├── apps/
 │   ├── Apps.kt              AppCatalog：枚举 LEANBACK_LAUNCHER + LAUNCHER，按包去重，缓存磁贴图（按 lastUpdateTime）
@@ -15,7 +15,7 @@ app/src/main/java/app/orchard/tv/
 │   ├── TileArt.kt           磁贴图生成：横幅 / 自适应图标双层 / 铺满底板 / 同色系底色；主色；每 App 的 64×36 环境光背景
 │   ├── TileRecipes.kt       精选图标库：按包名给 App 指定重绘方式（品牌色、白色 logo、用图标代替横幅、自绘图标）
 │   ├── TileSheet.kt         把所有磁贴拼成一张图，用来对比改动前后（ADB 触发，见 HANDOFF「调试」）
-│   ├── AppDetails.kt        应用信息的数据：版本、安装时间、运行时权限（按权限组）、特殊权限（app op），只读；`hasSystemScreen` 判断固件有没有自己的应用信息页
+│   ├── AppDetails.kt        应用信息的数据：版本、安装时间、运行时权限（按权限组）、特殊权限（app op）；`hasSystemScreen` 判断固件有没有自己的应用信息页
 │   ├── LayoutStore.kt       用户排序、文件夹与隐藏（SharedPreferences "layout"），首次运行的默认排序
 │   └── CustomIcons.kt       用户在手机页给 App 换的磁贴图（files/icons/<包名>.png，16:9）
 ├── ui/
@@ -26,7 +26,7 @@ app/src/main/java/app/orchard/tv/
 │   ├── home/HomeScreen.kt   首页布局：网格几何、滚动、焦点管理、各浮层挂载、返回键
 │   ├── home/AppTile.kt      单个磁贴：聚焦弹簧、阴影、柔光、视差、边缘回弹、长按、移动抖动
 │   ├── home/HomeChrome.kt   背景（AmbientBackground）、大时钟、右上角状态胶囊、时间格式
-│   ├── home/AppInfoSheet.kt 应用信息面板：版本和安装时间、「打开」「卸载」两个按钮、权限状态（只读）
+│   ├── home/AppInfoSheet.kt 应用信息面板：操作按钮（打开、强行停止、清除数据、卸载）、权限开关；由其他 App 请求时是只显示关闭项的精简版
 │   ├── home/Overlays.kt     长按菜单、隐藏的 App 面板、MenuRow、MiniTile
 │   ├── home/FolderView.kt   打开的文件夹
 │   ├── home/PinPad.kt       家长密码键盘（设置 / 解锁，遥控器数字键或屏幕键盘）
@@ -231,10 +231,13 @@ NanoHTTPD 监听 8790 端口，路径前缀是 8 位随机令牌（每次打开�
 
 ## 应用信息（固件没有「应用信息」页时）
 
-- 小米 HyperOS（MiTV-MFTR0，Android 11）没有「应用信息」页。长按菜单的「应用信息」原来只弹「此电视不支持」；其他 App（如文件管理器+）发来的 `ACTION_APPLICATION_DETAILS_SETTINGS` 也只显示「错误」。
+- 小米 HyperOS（MiTV-MFTR0，Android 11）没有「应用信息」页，也没有「所有文件访问」「显示在其他应用上层」「修改系统设置」「安装未知来源应用」这几个设置页。长按菜单的「应用信息」原来只弹「此电视不支持」；其他 App（如文件管理器+）发来的 `ACTION_APPLICATION_DETAILS_SETTINGS` 也只显示「错误」。
 - `AppDetails.hasSystemScreen` 看有没有别的 App 响应这个 Intent（不算 Aerial 自己）。有就沿用系统的；没有就用 Aerial 自己的 `AppInfoSheet`。
-- 只读：`PackageManager`（版本、安装时间、运行时权限，按权限组；没有分组的权限各占一行）和 `AppOpsManager`（特殊权限：所有文件访问、显示在其他应用上层、修改系统设置、安装未知来源应用），不需要特权。面板上能做的是「打开」和「卸载」（回到 Home，由它启动 App 或交给系统安装器）。改权限、强行停止、清除数据没有做：那要 shell 的权限，另说。
-- 其他 App 发来的请求：`AppInfoEntry`（`activity-alias`，默认关闭，只响应 `APPLICATION_DETAILS_SETTINGS`）只在没有系统页面时由 `MainActivity.updateAppInfoEntry` 打开，指向 `AppInfoActivity`。它是 `singleInstance`、独立的任务，透明主题叠在请求方上面（半透明深色玻璃，`LocalGlassOverApp`），返回键关掉整个任务，回到请求方。放在 `MainActivity`（`singleTask`）里时，面板会被放进请求方的任务，返回键反而打开 Aerial。
+- 读：`PackageManager`（运行时权限，按权限组；没有分组的权限各占一行）和 `AppOpsManager`（特殊权限），不需要特权。写：改权限要 `GRANT_RUNTIME_PERMISSIONS`，只有 shell 有，所以走 `system/AdbShell.kt`：连电视本机的 adbd（`127.0.0.1:5555`，安装脚本的 `KEEP_ADB` 已经保持开启），用 Aerial 自己的密钥，第一次电视会问「允许 USB 调试吗」，选「始终允许」。它**不是**通用 shell：只能发 `pm grant|revoke`、`appops set`、`am force-stop`、`pm clear`，包名和权限名要符合 `NAME`（点分标识符），操作名来自固定的枚举。
+- 没有「清除缓存」：Android 11 的 `pm clear` 没有 `--cache-only`，会忽略它并清除全部数据（在 MFTR0 上试出来的），`pm trim-caches` 又不是按 App 的。
+- 「所有文件访问」（`MANAGE_EXTERNAL_STORAGE`）是 uid 级的 app op，要用 `appops set --uid`；只撤销 `READ/WRITE_EXTERNAL_STORAGE` 时，App 仍能读写存储。
+- 其他 App 发来的请求：`AppInfoEntry`（`activity-alias`，默认关闭）只在没有系统页面时由 `MainActivity.updateAppInfoEntry` 打开，指向 `AppInfoActivity`。它是 `singleInstance`、独立的任务，透明主题叠在请求方上面（半透明深色玻璃，`LocalGlassOverApp`），返回键关掉整个任务，回到请求方。放在 `MainActivity`（`singleTask`）里时，它会落进请求方的任务；请求方的进程被杀（改权限会杀进程）后，再点它的磁贴只会看到 Aerial。请求没有指明哪一项时（应用信息）只显示当前关闭的项目，指明时（`MANAGE_APP_ALL_FILES_ACCESS_PERMISSION` 等）只显示那一项，旁边有「全部应用设置」进完整页面。
+- 改权限会让 Android 重启该 App（和系统自带的一样）。强行停止后「最近任务」里会留着一张空卡片，shell 在 Android 11 上删不掉。
 
 ## 系统能力（system/）
 

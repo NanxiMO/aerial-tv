@@ -210,15 +210,25 @@
     <string name="info_version">Версия %1$s (%2$d)</string>
     <string name="info_installed">Установлено %1$s</string>
     <string name="info_permissions">Разрешения</string>
-    <string name="info_no_permissions">Нет запрошенных разрешений</string>
+    <string name="info_no_permissions">Нет разрешений для изменения</string>
     <string name="perm_on">Вкл.</string>
     <string name="perm_off">Выкл.</string>
     <string name="perm_partial">Частично</string>
+    <string name="info_waiting">Выберите «Разрешить» в окне «Разрешить отладку по USB?» на ТВ, отметив «Всегда разрешать»</string>
+    <string name="info_unreachable">Для изменения разрешений нужна отладка по ADB, а на этом ТВ она выключена</string>
+    <string name="info_failed">ТВ не изменил: %1$s</string>
     <string name="info_special_access">Особый доступ</string>
     <string name="access_all_files">Доступ ко всем файлам</string>
     <string name="access_overlay">Поверх других приложений</string>
     <string name="access_write_settings">Изменение системных настроек</string>
     <string name="access_install">Установка неизвестных приложений</string>
     <string name="action_open">Открыть</string>
+    <string name="action_force_stop">Остановить</string>
+    <string name="action_clear_data">Очистить данные</string>
+    <string name="action_clear_data_confirm">Нажмите ещё раз</string>
     <string name="action_uninstall">Удалить</string>
+    <string name="info_stopped">Остановлено</string>
+    <string name="info_data_cleared">Данные очищены</string>
+    <string name="request_subtitle">Включите то, что просит это приложение</string>
+    <string name="request_all_settings">Все настройки приложения</string>
 </resources>

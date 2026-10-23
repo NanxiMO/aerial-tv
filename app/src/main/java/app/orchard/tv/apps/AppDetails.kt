@@ -9,6 +9,7 @@ import android.content.pm.PermissionInfo
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import app.orchard.tv.system.AdbShell
 
 /** The runtime permissions of one kind (camera, location...), which Android grants together. */
 data class PermissionGroup(val key: String, val label: String, val permissions: List<String>, val granted: Int) {
@@ -16,15 +17,7 @@ data class PermissionGroup(val key: String, val label: String, val permissions: 
     val noneGranted get() = granted == 0
 }
 
-/** An access the app asks for that is not a runtime permission, as an app op. */
-enum class SpecialAccessOp(val opString: String, val permission: String) {
-    MANAGE_EXTERNAL_STORAGE("android:manage_external_storage", "android.permission.MANAGE_EXTERNAL_STORAGE"),
-    SYSTEM_ALERT_WINDOW("android:system_alert_window", "android.permission.SYSTEM_ALERT_WINDOW"),
-    WRITE_SETTINGS("android:write_settings", "android.permission.WRITE_SETTINGS"),
-    REQUEST_INSTALL_PACKAGES("android:request_install_packages", "android.permission.REQUEST_INSTALL_PACKAGES"),
-}
-
-data class SpecialAccess(val op: SpecialAccessOp, val allowed: Boolean)
+data class SpecialAccess(val op: AdbShell.AppOp, val allowed: Boolean)
 
 /**
  * What the system's App Info screen shows, for TVs whose firmware has none (Xiaomi HyperOS on
@@ -51,7 +44,7 @@ data class AppDetails(
             return context.packageManager.queryIntentActivities(intent, 0).any { it.activityInfo.packageName != context.packageName }
         }
 
-        /** Null when the package is gone. Reads only. */
+        /** Null when the package is gone. Reads only; changing a permission is [app.orchard.tv.system.AdbShell]. */
         fun load(context: Context, pkg: String): AppDetails? {
             val pm = context.packageManager
             val info = try {
@@ -83,7 +76,7 @@ data class AppDetails(
             val requested = info.requestedPermissions?.toSet() ?: return emptyList()
             val uid = info.applicationInfo?.uid ?: return emptyList()
             val ops = context.getSystemService(AppOpsManager::class.java) ?: return emptyList()
-            return SpecialAccessOp.entries.filter { it.permission in requested }.map { op ->
+            return AdbShell.AppOp.entries.filter { it.permission in requested }.map { op ->
                 val mode = runCatching { ops.unsafeCheckOpNoThrow(op.opString, uid, info.packageName) }.getOrNull()
                 SpecialAccess(op, allowed = mode == AppOpsManager.MODE_ALLOWED)
             }

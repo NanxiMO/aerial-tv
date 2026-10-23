@@ -14,14 +14,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import app.orchard.tv.settings.AerialSettings
+import app.orchard.tv.system.AdbShell
 import app.orchard.tv.ui.components.LocalGlassOverApp
 import app.orchard.tv.ui.home.AppInfoSheet
 import app.orchard.tv.ui.theme.LocalReducedMotion
 import app.orchard.tv.ui.theme.canvasDensity
 
 /**
- * Answers the App Info screen that firmware lacks and apps send people to, with Aerial's own
- * (Xiaomi HyperOS on MiTV-MFTR0 has none: File Manager+ showed "Error"). Entered through the
+ * Answers the settings screens that firmware lacks and apps send people to, with Aerial's own App
+ * Info (Xiaomi HyperOS on MiTV-MFTR0 has none: File Manager+ showed "Error"). Entered through the
  * AppInfoEntry alias, which MainActivity switches on only on such firmware.
  *
  * It is alone in a task of its own, over the app that asked, and closing it takes the task with it,
@@ -31,6 +32,7 @@ import app.orchard.tv.ui.theme.canvasDensity
 class AppInfoActivity : ComponentActivity() {
 
     private var target by mutableStateOf<String?>(null)
+    private var named by mutableStateOf<AdbShell.AppOp?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +51,8 @@ class AppInfoActivity : ComponentActivity() {
                 AppInfoSheet(
                     pkg = pkg,
                     removable = pkg?.let { removable(it) } == true,
+                    requestOnly = true,
+                    onlyOp = named,
                     onOpen = { openApp(it) },
                     onUninstall = { uninstall(it) },
                     onDismiss = { finishAndRemoveTask() },
@@ -67,6 +71,14 @@ class AppInfoActivity : ComponentActivity() {
         if (pkg == null) {
             finishAndRemoveTask()
             return
+        }
+        // Some of these name the one access the app wants; App Info itself does not.
+        named = when (intent.action) {
+            "android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION" -> AdbShell.AppOp.MANAGE_EXTERNAL_STORAGE
+            "android.settings.action.MANAGE_OVERLAY_PERMISSION" -> AdbShell.AppOp.SYSTEM_ALERT_WINDOW
+            "android.settings.action.MANAGE_WRITE_SETTINGS" -> AdbShell.AppOp.WRITE_SETTINGS
+            "android.settings.MANAGE_UNKNOWN_APP_SOURCES" -> AdbShell.AppOp.REQUEST_INSTALL_PACKAGES
+            else -> null
         }
         target = pkg
     }

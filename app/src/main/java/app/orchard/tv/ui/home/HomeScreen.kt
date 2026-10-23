@@ -736,6 +736,8 @@ fun HomeScreen(
         AppInfoSheet(
             pkg = infoKey,
             removable = infoKey?.let { vm.entry(it)?.removable } == true,
+            requestOnly = false,
+            onlyOp = null,
             onOpen = { key ->
                 vm.overlay = Overlay.None
                 vm.entry(key)?.let { onLaunch(it, null) }

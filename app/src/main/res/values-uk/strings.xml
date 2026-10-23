@@ -210,15 +210,25 @@
     <string name="info_version">Версія %1$s (%2$d)</string>
     <string name="info_installed">Встановлено %1$s</string>
     <string name="info_permissions">Дозволи</string>
-    <string name="info_no_permissions">Немає запитаних дозволів</string>
+    <string name="info_no_permissions">Немає дозволів для зміни</string>
     <string name="perm_on">Увімк.</string>
     <string name="perm_off">Вимк.</string>
     <string name="perm_partial">Частково</string>
+    <string name="info_waiting">Виберіть «Дозволити» у вікні «Дозволити налагодження USB?» на ТВ, позначивши «Завжди дозволяти»</string>
+    <string name="info_unreachable">Для зміни дозволів потрібне налагодження ADB, а на цьому ТВ воно вимкнене</string>
+    <string name="info_failed">ТВ не змінив: %1$s</string>
     <string name="info_special_access">Особливий доступ</string>
     <string name="access_all_files">Доступ до всіх файлів</string>
     <string name="access_overlay">Поверх інших застосунків</string>
     <string name="access_write_settings">Зміна системних налаштувань</string>
     <string name="access_install">Встановлення невідомих застосунків</string>
     <string name="action_open">Відкрити</string>
+    <string name="action_force_stop">Зупинити</string>
+    <string name="action_clear_data">Очистити дані</string>
+    <string name="action_clear_data_confirm">Натисніть ще раз</string>
     <string name="action_uninstall">Видалити</string>
+    <string name="info_stopped">Зупинено</string>
+    <string name="info_data_cleared">Дані очищено</string>
+    <string name="request_subtitle">Увімкніть те, чого просить цей застосунок</string>
+    <string name="request_all_settings">Усі налаштування застосунку</string>
 </resources>

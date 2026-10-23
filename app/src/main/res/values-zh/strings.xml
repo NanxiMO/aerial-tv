@@ -217,15 +217,25 @@
     <string name="info_version">版本 %1$s（%2$d）</string>
     <string name="info_installed">安装于 %1$s</string>
     <string name="info_permissions">权限</string>
-    <string name="info_no_permissions">没有申请任何权限</string>
+    <string name="info_no_permissions">没有可以修改的权限</string>
     <string name="perm_on">开</string>
     <string name="perm_off">关</string>
     <string name="perm_partial">部分</string>
+    <string name="info_waiting">请在电视上「允许 USB 调试吗？」的提示里勾选「始终允许」并选「允许」</string>
+    <string name="info_unreachable">修改权限需要 ADB 调试，这台电视上没有打开</string>
+    <string name="info_failed">电视没有修改成功：%1$s</string>
     <string name="info_special_access">特殊权限</string>
     <string name="access_all_files">访问所有文件</string>
     <string name="access_overlay">显示在其他应用上层</string>
     <string name="access_write_settings">修改系统设置</string>
     <string name="access_install">安装未知来源应用</string>
     <string name="action_open">打开</string>
+    <string name="action_force_stop">强行停止</string>
+    <string name="action_clear_data">清除数据</string>
+    <string name="action_clear_data_confirm">再按一次</string>
     <string name="action_uninstall">卸载</string>
+    <string name="info_stopped">已停止</string>
+    <string name="info_data_cleared">数据已清除</string>
+    <string name="request_subtitle">开启此应用请求的权限</string>
+    <string name="request_all_settings">全部应用设置</string>
 </resources>

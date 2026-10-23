@@ -103,9 +103,9 @@
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density" />
 
         <!--
-            Stands in for the App Info screen a firmware lacks (Xiaomi HyperOS on MiTV-MFTR0 has none,
-            so File Manager+ showed "Error"). MainActivity switches it on only when no other app
-            answers the App Info intent.
+            Stands in for the settings screens a firmware lacks (Xiaomi HyperOS on MiTV-MFTR0 has no
+            App Info, so File Manager+ showed "Error"). MainActivity switches it on only when no other
+            app answers the App Info intent.
         -->
         <activity-alias
             android:name=".AppInfoEntry"
@@ -114,6 +114,10 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.settings.APPLICATION_DETAILS_SETTINGS" />
+                <action android:name="android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION" />
+                <action android:name="android.settings.action.MANAGE_OVERLAY_PERMISSION" />
+                <action android:name="android.settings.action.MANAGE_WRITE_SETTINGS" />
+                <action android:name="android.settings.MANAGE_UNKNOWN_APP_SOURCES" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="package" />
             </intent-filter>

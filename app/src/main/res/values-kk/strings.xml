@@ -210,15 +210,25 @@
     <string name="info_version">Нұсқа %1$s (%2$d)</string>
     <string name="info_installed">Орнатылған күні: %1$s</string>
     <string name="info_permissions">Рұқсаттар</string>
-    <string name="info_no_permissions">Сұралған рұқсаттар жоқ</string>
+    <string name="info_no_permissions">Өзгертетін рұқсаттар жоқ</string>
     <string name="perm_on">Қосулы</string>
     <string name="perm_off">Өшірулі</string>
     <string name="perm_partial">Жартылай</string>
+    <string name="info_waiting">Теледидардағы «USB арқылы жөндеуге рұқсат беру керек пе?» терезесінде «Рұқсат беру» таңдап, «Әрқашан рұқсат беру» белгісін қойыңыз</string>
+    <string name="info_unreachable">Рұқсаттарды өзгерту үшін ADB жөндеуі қажет, бірақ бұл теледидарда ол өшірулі</string>
+    <string name="info_failed">Теледидар өзгертпеді: %1$s</string>
     <string name="info_special_access">Арнайы қолжетімділік</string>
     <string name="access_all_files">Барлық файлдарға қолжетімділік</string>
     <string name="access_overlay">Басқа қолданбалардың үстінен көрсету</string>
     <string name="access_write_settings">Жүйе параметрлерін өзгерту</string>
     <string name="access_install">Белгісіз қолданбаларды орнату</string>
     <string name="action_open">Ашу</string>
+    <string name="action_force_stop">Тоқтату</string>
+    <string name="action_clear_data">Деректерді тазалау</string>
+    <string name="action_clear_data_confirm">Қайта басыңыз</string>
     <string name="action_uninstall">Жою</string>
+    <string name="info_stopped">Тоқтатылды</string>
+    <string name="info_data_cleared">Деректер тазаланды</string>
+    <string name="request_subtitle">Бұл қолданба сұрағанды қосыңыз</string>
+    <string name="request_all_settings">Қолданбаның барлық параметрлері</string>
 </resources>
