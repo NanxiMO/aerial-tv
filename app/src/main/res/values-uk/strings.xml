@@ -213,7 +213,7 @@
     <string name="shelf_left_min">Залишилось %1$d хв</string>
     <string name="shelf_left_hm">Залишилось %1$d год %2$d хв</string>
     <string name="st_app_content">Вміст застосунків</string>
-    <string name="st_app_content_on">Показувати</string>
+    <string name="st_app_content_on">Висувається</string>
     <string name="st_app_content_off">Вимк.</string>
     <string name="st_app_content_hint">У застосунку з «Продовжити перегляд» або власними добірками над плиткою в першому ряду з’являється стрілка. Натисніть «вгору», щоб побачити їх, у кожного каналу своя вкладка. «Завжди» показує їх сама, щойно ви перейшли до застосунку. Інші застосунки лишаються як є.</string>
     <string name="st_app_content_always">Завжди</string>

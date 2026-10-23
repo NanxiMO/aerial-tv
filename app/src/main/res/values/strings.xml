@@ -127,7 +127,7 @@
     <string name="st_clock_large">Large</string>
     <string name="st_clock_size_hint">Small puts the time and weather in one line in the corner. Large puts a big clock at the top of the screen, the date over it and the weather under it.</string>
     <string name="st_app_content">App Content</string>
-    <string name="st_app_content_on">Show</string>
+    <string name="st_app_content_on">Slides Out</string>
     <string name="st_app_content_off">Off</string>
     <string name="st_app_content_hint">An app that offers continue watching or its own picks shows a small arrow over its tile in the top row. Press Up for them, with a tab for each channel. Always shows them by itself as soon as you move to the app. Apps that offer none are left as they are.</string>
     <string name="st_app_content_always">Always</string>
