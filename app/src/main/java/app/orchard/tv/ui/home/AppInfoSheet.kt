@@ -45,6 +45,7 @@ import app.orchard.tv.R
 import app.orchard.tv.apps.AppDetails
 import app.orchard.tv.apps.PermissionGroup
 import app.orchard.tv.apps.SpecialAccess
+import app.orchard.tv.settings.AerialSettings
 import app.orchard.tv.system.AdbShell
 import app.orchard.tv.ui.components.Pressable
 import app.orchard.tv.ui.components.consumeTaps
@@ -123,6 +124,7 @@ fun AppInfoSheet(
     val waitingText = stringResource(R.string.info_waiting)
     val unreachableText = stringResource(R.string.info_unreachable)
     val failedText = stringResource(R.string.info_failed)
+    val offText = stringResource(R.string.info_adb_off)
     val stoppedText = stringResource(R.string.info_stopped)
     val clearedText = stringResource(R.string.info_data_cleared)
 
@@ -130,6 +132,10 @@ fun AppInfoSheet(
     fun change(done: String? = null, change: (target: String, waiting: () -> Unit) -> List<String>) {
         val target = shownPkg ?: return
         if (busy) return
+        if (!AerialSettings.adbAccess) {
+            message = offText
+            return
+        }
         busy = true
         message = null
         notice = null

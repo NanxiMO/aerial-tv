@@ -2,6 +2,7 @@ package app.orchard.tv.system
 
 import android.content.Context
 import android.util.Base64
+import app.orchard.tv.settings.AerialSettings
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.File
@@ -113,7 +114,19 @@ object AdbShell {
         return run(context, "${action.command} $pkg", onApproval)
     }
 
+    /**
+     * Deletes Aerial's key. The TV may keep listing its public half, but nobody can sign in with it
+     * without the private half, so nothing is left open; the TV's own list is cleared under Developer
+     * options, Revoke USB debugging authorizations.
+     */
+    fun revoke(context: Context) {
+        File(context.filesDir, "adb_priv").delete()
+        File(context.filesDir, "adb_pub").delete()
+    }
+
     private fun run(context: Context, command: String, onApproval: () -> Unit): String {
+        // Off until the owner has read what this is and agreed (Personalize), and then no key exists.
+        if (!AerialSettings.adbAccess) throw AdbException("changing other apps is switched off")
         val key = loadKey(context)
         try {
             Socket().use { socket ->

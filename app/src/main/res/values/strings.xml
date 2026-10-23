@@ -239,4 +239,17 @@
     <string name="info_data_cleared">Data cleared</string>
     <string name="request_subtitle">Turn on what this app asks for</string>
     <string name="request_all_settings">All app settings</string>
+    <string name="wp_advanced">Advanced</string>
+    <string name="st_adb">App Permissions</string>
+    <string name="st_adb_hint">Lets App Info change other apps\' permissions, stop them and clear their data, through the TV\'s own debugging service. Off until you turn it on.</string>
+    <string name="st_adb_on">On</string>
+    <string name="st_adb_off">Off</string>
+    <string name="adb_title">Change other apps\' permissions?</string>
+    <string name="adb_what">App Info will connect to this TV\'s own debugging service (ADB over the network, on this TV only) to switch other apps\' permissions, stop them and clear their data. The TV asks once to allow Aerial\'s key; choose Allow.</string>
+    <string name="adb_risk">Risk: with Always allow, whoever gets hold of Aerial\'s key can run any command on this TV through ADB, not only the ones Aerial sends. The key stays in Aerial\'s private storage. It also needs ADB over the network to stay on.</string>
+    <string name="adb_undo">Turning it off here deletes the key. To clear the TV\'s own list too: Developer options, Revoke USB debugging authorizations.</string>
+    <string name="adb_agree">I understand the risk and want to turn this on</string>
+    <string name="adb_enable">Turn On</string>
+    <string name="adb_cancel">Cancel</string>
+    <string name="info_adb_off">Turn on App Permissions in Personalize first</string>
 </resources>
