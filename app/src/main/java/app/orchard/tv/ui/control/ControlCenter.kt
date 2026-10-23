@@ -57,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -80,6 +81,17 @@ import app.orchard.tv.system.HomeStatus
 import app.orchard.tv.system.NetKind
 import app.orchard.tv.system.SourceKind
 import app.orchard.tv.system.Sounds
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import app.orchard.tv.system.WifiNetworks
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import app.orchard.tv.system.SystemProbe
 import app.orchard.tv.ui.components.Pressable
 import app.orchard.tv.ui.components.consumeTaps
@@ -115,7 +127,7 @@ fun ControlCenter(
             CcPage.Main -> onClose()
             CcPage.Inputs -> vm.overlay = Overlay.ControlCenter(CcPage.Main)
             CcPage.InputSettings -> vm.overlay = Overlay.ControlCenter(CcPage.Inputs)
-            CcPage.Update, CcPage.Setup -> vm.overlay = Overlay.ControlCenter(CcPage.Main)
+            CcPage.Update, CcPage.Setup, CcPage.Networks -> vm.overlay = Overlay.ControlCenter(CcPage.Main)
         }
     }
 
@@ -163,6 +175,7 @@ fun ControlCenter(
                         CcPage.InputSettings -> InputSettingsPage(vm, visible)
                         CcPage.Update -> UpdatePage(vm, visible)
                         CcPage.Setup -> SetupPage(vm, visible, onOpen)
+                        CcPage.Networks -> NetworksPage(vm, visible, onOpen)
                     }
                 }
             }
@@ -214,7 +227,12 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, takeFocus: Boolean, 
             RoundButton(
                 when (vm.network.kind) { NetKind.Ethernet -> Glyph.Ethernet; NetKind.Offline -> Glyph.Offline; else -> Glyph.Wifi },
                 stringResource(R.string.cc_network),
-            ) { vm.whenUnlocked { onOpen(SystemProbe.networkSettingsIntent(context)) } }
+            ) {
+                // Picked and joined inside Control Center when the firmware's framework allows it;
+                // otherwise the firm's Wi-Fi page still is one press away.
+                if (WifiNetworks.available(context)) vm.overlay = Overlay.ControlCenter(CcPage.Networks)
+                else vm.whenUnlocked { onOpen(SystemProbe.networkSettingsIntent(context)) }
+            }
             RoundButton(Glyph.Gear, stringResource(R.string.cc_settings)) { vm.whenUnlocked { onOpen(SystemProbe.settingsIntent(context)) } }
         }
 
@@ -382,6 +400,169 @@ private fun SetupPage(vm: HomeViewModel, takeFocus: Boolean, onOpen: (android.co
                 BasicText(stringResource(R.string.cc_setup_scan_hint), style = Type.Caption)
             }
         }
+    }
+}
+
+@Composable
+private fun NetworksPage(vm: HomeViewModel, takeFocus: Boolean, onOpen: (android.content.Intent) -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val first = remember { FocusRequester() }
+    var networks by remember { mutableStateOf<List<WifiNetworks.Ap>?>(null) }
+    var passwordFor by remember { mutableStateOf<WifiNetworks.Ap?>(null) }
+    var password by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf<String?>(null) }
+    var joining by remember { mutableStateOf(false) }
+    val passwordField = remember { FocusRequester() }
+
+    fun reload() {
+        networks = null
+        scope.launch {
+            val list = withContext(Dispatchers.IO) { WifiNetworks.scan(context) }
+            networks = list
+        }
+    }
+    LaunchedEffect(Unit) { reload() }
+    LaunchedEffect(takeFocus) {
+        if (!takeFocus) return@LaunchedEffect
+        withFrameNanos { }
+        runCatching { first.requestFocus() }
+    }
+    LaunchedEffect(passwordFor) {
+        if (passwordFor != null) {
+            withFrameNanos { }
+            runCatching { passwordField.requestFocus() }
+        }
+    }
+    BackHandler(enabled = passwordFor != null) {
+        passwordFor = null
+        password = ""
+    }
+
+    fun join(ap: WifiNetworks.Ap, pass: String) {
+        if (joining) return
+        joining = true
+        status = null
+        scope.launch {
+            val outcome = withContext(Dispatchers.IO) { WifiNetworks.connect(context, ap, pass) }
+            when (outcome) {
+                WifiNetworks.Outcome.Started -> {
+                    delay(1800)
+                    joining = false
+                    status = context.getString(R.string.cc_networks_joined, ap.ssid)
+                    passwordFor = null
+                    password = ""
+                    reload()
+                }
+                WifiNetworks.Outcome.Failed -> {
+                    joining = false
+                    status = context.getString(R.string.cc_networks_failed)
+                }
+                WifiNetworks.Outcome.UseSystemPage -> {
+                    joining = false
+                    vm.whenUnlocked { onOpen(SystemProbe.networkSettingsIntent(context)) }
+                }
+            }
+        }
+    }
+
+    val target = passwordFor
+    if (target != null) {
+        Column {
+            BasicText(stringResource(R.string.cc_networks_password_title, target.ssid), style = Type.Title, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(12.dp))
+            BasicTextField(
+                value = password,
+                onValueChange = { password = it },
+                singleLine = true,
+                textStyle = Type.Body.copy(color = Palette.Label),
+                cursorBrush = Brush.verticalGradient(listOf(Palette.Focus, Palette.Focus)),
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(onDone = { join(target, password) }),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Palette.Fill)
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                    .focusRequester(passwordField),
+            )
+            Spacer(Modifier.height(14.dp))
+            MenuRow(
+                Glyph.Check,
+                if (joining) stringResource(R.string.cc_networks_joining) else stringResource(R.string.cc_networks_join),
+                onClick = { join(target, password) },
+            )
+            MenuRow(Glyph.ChevronLeft, stringResource(R.string.cc_networks_cancel), onClick = {
+                passwordFor = null
+                password = ""
+            })
+            status?.let {
+                Spacer(Modifier.height(10.dp))
+                BasicText(it, style = Type.Caption, modifier = Modifier.padding(horizontal = 14.dp))
+            }
+        }
+        return
+    }
+
+    Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState())) {
+        MenuRow(
+            Glyph.ChevronLeft,
+            stringResource(R.string.cc_networks_title),
+            focusRequester = first,
+            onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Main) },
+        )
+        status?.let {
+            BasicText(it, style = Type.Caption, modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp))
+        }
+        val list = networks
+        if (list == null) {
+            BasicText(
+                stringResource(R.string.cc_networks_scanning),
+                style = Type.Caption,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            )
+        } else {
+            if (list.isEmpty()) {
+                BasicText(
+                    stringResource(R.string.cc_networks_empty),
+                    style = Type.Caption,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                )
+            }
+            list.forEach { ap ->
+                // What the row is: connected first, then saved and locked networks.
+                val label: String? = when {
+                    ap.connected -> stringResource(R.string.cc_networks_connected)
+                    ap.saved -> stringResource(R.string.cc_networks_saved)
+                    ap.secured -> null
+                    else -> stringResource(R.string.cc_networks_open)
+                }
+                MenuRow(
+                    Glyph.Wifi,
+                    ap.ssid,
+                    trailing = label,
+                    onClick = {
+                        when {
+                            ap.connected -> Unit
+                            ap.saved || !ap.secured -> join(ap, "")
+                            else -> {
+                                passwordFor = ap
+                                password = ""
+                                status = null
+                            }
+                        }
+                    },
+                )
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        MenuRow(Glyph.Gear, stringResource(R.string.cc_networks_system), trailing = "›", onClick = {
+            vm.whenUnlocked { onOpen(SystemProbe.networkSettingsIntent(context)) }
+        })
     }
 }
 
