@@ -150,6 +150,9 @@ object SystemProbe {
     private val SETTINGS_PACKAGES = setOf("com.android.settings", "com.android.tv.settings", "com.xiaomi.mitv.settings", "com.tcl.settings", "com.helios.setting")
 
     fun settingsIntent(context: Context): Intent =
+        xgimiSettingsIntent(context, "Settings://com.xgimi.misckey.main/mainPage") ?: settingsActivityIntent(context)
+
+    private fun settingsActivityIntent(context: Context): Intent =
         firstResolvable(
             context,
             Intent("com.xiaomi.mitv.settings.SETTINGS").setComponent(ComponentName("com.xiaomi.mitv.settings", "com.xiaomi.mitv.settings.entry.MainActivity")),
@@ -183,6 +186,9 @@ object SystemProbe {
         intent.takeIf { context.packageManager.resolveActivity(it, 0) != null }?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
     fun networkSettingsIntent(context: Context): Intent =
+        xgimiSettingsIntent(context, "Settings://com.xgimi.settings.net/wifi_misckey") ?: networkSettingsActivityIntent(context)
+
+    private fun networkSettingsActivityIntent(context: Context): Intent =
         firstResolvable(
             context,
             Intent("com.xiaomi.mitv.settings.WIFI_SETTINGS").setComponent(ComponentName("com.xiaomi.mitv.settings", "com.xiaomi.mitv.settings.wifi.MitvWifiActivity")),
@@ -195,6 +201,30 @@ object SystemProbe {
             Intent(Intent.ACTION_MAIN).setComponent(ComponentName("com.tcl.settings", "com.tcl.settings.ui.MainActivity")),
             WHALEY_SETTINGS,
         )
+
+    private val XGIMI_SETTINGS = ComponentName("com.android.newsettings", "com.xgimi.newsettings.SettingService")
+
+    // XGIMI Z7X (GMUI 6.11) opens these pages through an exported service rather than an activity.
+    private fun xgimiSettingsIntent(context: Context, page: String): Intent? {
+        val intent = Intent("com.xgimi.settings.SETTINGS").setComponent(XGIMI_SETTINGS)
+            .putExtra("data", page)
+            .putExtra("packageName", "com.xgimi.misckey")
+            .putExtra("unlocked", false)
+        return intent.takeIf { context.packageManager.resolveService(it, 0)?.serviceInfo?.exported == true }
+    }
+
+    fun startSettingsIntent(context: Context, intent: Intent) {
+        val activity = if (intent.component == XGIMI_SETTINGS) {
+            val shown = runCatching { context.startService(intent) }.getOrNull() != null
+            if (shown) return
+            if (intent.getStringExtra("data") == "Settings://com.xgimi.settings.net/wifi_misckey") {
+                networkSettingsActivityIntent(context)
+            } else {
+                settingsActivityIntent(context)
+            }
+        } else intent
+        context.startActivity(settingsLaunchIntent(context, activity))
+    }
 
     /**
      * Whaley (WTV55K1J, Android 5.0) answers no settings action; its network page is not exported,
@@ -231,7 +261,7 @@ object SystemProbe {
                     // PPTV K55U27: picture and sound, where its brightness is (issue #264).
                     Intent("com.pptv.intent.action.PICTUREAUDIO_ACTIVITY")
                         .setComponent(ComponentName("com.pptv.setting", "com.pptv.setting.media.PictureAudioSettingActivity")),
-                    settingsIntent(context),
+                    settingsActivityIntent(context),
                 ),
             )
         }.isSuccess
