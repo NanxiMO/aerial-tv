@@ -129,7 +129,8 @@
     <string name="st_app_content">App Content</string>
     <string name="st_app_content_on">Show</string>
     <string name="st_app_content_off">Off</string>
-    <string name="st_app_content_hint">An app that offers continue watching or its own picks shows a small arrow over its tile in the top row. Press Up for them, with a tab for each channel. Apps that offer none are left as they are.</string>
+    <string name="st_app_content_hint">An app that offers continue watching or its own picks shows a small arrow over its tile in the top row. Press Up for them, with a tab for each channel. Always shows them by itself as soon as you move to the app. Apps that offer none are left as they are.</string>
+    <string name="st_app_content_always">Always</string>
     <string name="shelf_continue">Continue Watching</string>
     <string name="shelf_season">Season %1$s</string>
     <string name="shelf_episode">Episode %1$s</string>

@@ -121,7 +121,8 @@
     <string name="st_names">Қолданба атаулары</string>
     <string name="st_names_focused">Таңдалған қолданба</string>
     <string name="st_names_all">Барлық қолданбалар</string>
-    <string name="st_names_hint">Атаулар әр қолданбаның астында немесе тек таңдалғанның астында, Apple TV сияқты.</string>
+    <string name="st_names_hero">Үстінде үлкен атау</string>
+    <string name="st_names_hint">Атаулар әр қолданбаның астында, тек таңдалғанның астында (Apple TV сияқты) немесе тордың үстінде бір үлкен атау. Барлық атаулар көрсетілгенде, бірінші қатардың атаулары шыны тақтада да тұрады.</string>
     <string name="ss_kind">Түрі</string>
     <string name="wp_weather_city">Орналасқан жер</string>
     <string name="st_home_standard">Екі қатар</string>
@@ -214,6 +215,7 @@
     <string name="st_app_content">Қолданба мазмұны</string>
     <string name="st_app_content_on">Көрсету</string>
     <string name="st_app_content_off">Өшірулі</string>
-    <string name="st_app_content_hint">«Қарауды жалғастыру» немесе өз топтамалары бар қолданбаның бірінші қатардағы тақтайшасының үстінде көрсеткі пайда болады. Оларды көру үшін «жоғары» басыңыз, әр арнаның өз қойындысы бар. Басқа қолданбалар өзгеріссіз қалады.</string>
+    <string name="st_app_content_hint">«Қарауды жалғастыру» немесе өз топтамалары бар қолданбаның бірінші қатардағы тақтайшасының үстінде көрсеткі пайда болады. Оларды көру үшін «жоғары» басыңыз, әр арнаның өз қойындысы бар. «Әрқашан» қолданбаға көшкеніңізде оларды өздігінен көрсетеді. Басқа қолданбалар өзгеріссіз қалады.</string>
+    <string name="st_app_content_always">Әрқашан</string>
     <string name="tile_stock_home">ТД басты экраны</string>
 </resources>

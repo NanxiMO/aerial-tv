@@ -18,6 +18,20 @@ import java.security.MessageDigest
  * that motion is what the eye follows. With the D-pad remotes these TVs ship with, the icon only
  * grows, and owners lost track of it. High Contrast adds a white frame and is the default here.
  */
+/**
+ * Whether an app's own programs show above the top row: on Up (an arrow over the tile says they are
+ * there), not at all, or by themselves as you move to the app. Before this it was on or off.
+ */
+enum class AppContentMode(val key: String) {
+    OnUp("up"), Off("off"), Always("always");
+
+    companion object {
+        /** The mode stored, else what the on/off setting it replaced said (on or never set: on Up). */
+        fun of(key: String?, legacyOn: Boolean?): AppContentMode =
+            entries.firstOrNull { it.key == key } ?: if (legacyOn == false) Off else OnUp
+    }
+}
+
 enum class FocusStyle(val key: String) {
     Standard("standard"), HighContrast("high_contrast");
 
@@ -102,7 +116,10 @@ object AerialSettings {
      * Above the top row, the focused app's own programs (watch next and its channels) as a row of
      * cards, as on Google TV and tvOS's top shelf. Apps that publish none keep the wallpaper.
      */
-    var appContent by mutableStateOf(true); private set
+    var appContentMode by mutableStateOf(AppContentMode.OnUp); private set
+
+    /** Whether any shelf shows. */
+    val appContent: Boolean get() = appContentMode != AppContentMode.Off
 
     /** Back on Home's top row starts the screensaver, as on tvOS; off for homes where it gets pressed by accident (issue #94). */
     var backStartsScreensaver by mutableStateOf(true); private set
@@ -157,7 +174,10 @@ object AerialSettings {
             else -> UiSounds.Aerial
         }
         backStartsScreensaver = prefs.getBoolean("back_starts_screensaver", true)
-        appContent = prefs.getBoolean("app_content", true)
+        appContentMode = AppContentMode.of(
+            prefs.getString("app_content_mode", null),
+            if (prefs.contains("app_content")) prefs.getBoolean("app_content", true) else null,
+        )
         screensaverMinutes = prefs.getInt("screensaver_minutes", DEFAULT_SCREENSAVER_MINUTES)
         aerialQuality = AerialQuality.of(prefs.getString("aerial_quality", null))
     }
@@ -237,9 +257,13 @@ object AerialSettings {
         }
     }
 
-    fun chooseAppContent(on: Boolean) {
-        appContent = on
-        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putBoolean("app_content", on) }
+    fun chooseAppContentMode(mode: AppContentMode) {
+        appContentMode = mode
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit {
+            putString("app_content_mode", mode.key)
+            // Kept so that an older build still reads on or off.
+            putBoolean("app_content", mode != AppContentMode.Off)
+        }
     }
 
     fun chooseBackStartsScreensaver(on: Boolean) {

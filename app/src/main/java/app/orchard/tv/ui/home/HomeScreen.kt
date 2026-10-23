@@ -80,6 +80,7 @@ import app.orchard.tv.HomeViewModel
 import app.orchard.tv.Overlay
 import app.orchard.tv.R
 import app.orchard.tv.settings.AerialSettings
+import app.orchard.tv.settings.AppContentMode
 import app.orchard.tv.shelf.Shelf
 import app.orchard.tv.shelf.ShelfImages
 import app.orchard.tv.shelf.ShelfItem
@@ -341,7 +342,8 @@ fun HomeScreen(
     }
     // The shelf is shown only while focus is up on it; on its app's tile an arrow says it is there.
     // The shelf stays up, unfocused, while focus is on the pill it was left for.
-    val shelfUp = shelf != null && (inShelf || pillFocused && pillFromShelf)
+    // In "Always" it is up as soon as the app has one, with the cards dimmed until Up takes focus to them.
+    val shelfUp = shelf != null && (inShelf || pillFocused && pillFromShelf || AerialSettings.appContentMode == AppContentMode.Always)
     // Back to where focus left for the pill: the shelf, or the app's tile.
     fun returnFromPill() {
         val key = focusedKey ?: return
@@ -675,6 +677,7 @@ fun HomeScreen(
                 // An arrow over the focused tile says its app has a shelf: Up opens it.
                 val arrowApp = apps.getOrNull(focusedIndex)?.takeIf {
                     shelf != null && !inShelf && !pillFocused && moving == null && gridEnabled &&
+                        AerialSettings.appContentMode != AppContentMode.Always &&
                         focusedIndex < COLUMNS && shelf?.pkg == it.packageName
                 }
                 val arrowIn by animateFloatAsState(

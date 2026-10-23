@@ -128,7 +128,8 @@
     <string name="st_app_content">App 内容</string>
     <string name="st_app_content_on">显示</string>
     <string name="st_app_content_off">不显示</string>
-    <string name="st_app_content_hint">第一排里提供「继续观看」或自己推荐的 App，磁贴上方会出现一个小箭头；按「上」查看，每个频道一个标签。没有提供内容的 App 保持原样。</string>
+    <string name="st_app_content_hint">第一排里提供「继续观看」或自己推荐的 App，磁贴上方会出现一个小箭头；按「上」查看，每个频道一个标签。选「始终显示」则一移到这个 App 就自动展开。没有提供内容的 App 保持原样。</string>
+    <string name="st_app_content_always">始终显示</string>
     <string name="shelf_continue">继续观看</string>
     <string name="shelf_season">第 %1$s 季</string>
     <string name="shelf_episode">第 %1$s 集</string>

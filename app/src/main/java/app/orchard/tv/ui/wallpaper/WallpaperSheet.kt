@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import app.orchard.tv.R
 import app.orchard.tv.settings.AerialSettings
+import app.orchard.tv.settings.AppContentMode
 import app.orchard.tv.settings.NameMode
 import app.orchard.tv.settings.FocusStyle
 import app.orchard.tv.settings.UiSounds
@@ -176,8 +177,12 @@ fun WallpaperSheet(
                         )
                         Choices(
                             R.string.st_app_content, stringResource(R.string.st_app_content_hint), note,
-                            listOf(true to R.string.st_app_content_on, false to R.string.st_app_content_off),
-                            AerialSettings.appContent, AerialSettings::chooseAppContent,
+                            listOf(
+                                AppContentMode.OnUp to R.string.st_app_content_on,
+                                AppContentMode.Off to R.string.st_app_content_off,
+                                AppContentMode.Always to R.string.st_app_content_always,
+                            ),
+                            AerialSettings.appContentMode, AerialSettings::chooseAppContentMode,
                         )
                         Choices(
                             R.string.st_names, stringResource(R.string.st_names_hint), note,
