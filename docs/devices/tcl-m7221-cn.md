@@ -5,7 +5,8 @@
 - 零售型号：TCL **75V2**；`ro.product.device` / `ro.product.model` = `sugarcane`；固件 `V8-S48CT05-LF1V142`（MS848C 机芯）。
 - 平台 MStar **m7221**（`ro.board.platform` / `ro.hardware`），1920×1080，240dpi；Android **8.0.0**（SDK 26），`OPR5.170623.014 dev-keys`。
 - 原桌面：`com.tcl.cyberui/.MainActivity`。
-- 安装的 flavor：**`standard`**。这台不需要 guard 守护——桌面由固件的 `persist.sys.launcher.component` 直接拉起（见下），也就用不到无障碍服务、通知监听，不受 TCL 自启动管理限制。
+- 安装的 flavor：**`standard`**（`versionName 1.33`，`md5 fe1e1a8bb455abb9217eb56d7b956ff4`）。注意 `standard` 包内**同样带 guard 组件**（`guard/BootReceiver`、`guard/HomeGuardService`、`guard/RevivalSyncService`、`guard/RevivalAccountService`），并非只有 `guard` flavor 才有；本机 `enabled_accessibility_services` 里就有 `app.orchard.tv/app.orchard.tv.guard.HomeGuardService`，`dumpsys activity processes` 也能看到它对 system_server 的 `FGSA` 绑定，即守护在运行。
+- 开机直达的主路径不依赖守护：固件的 `persist.sys.launcher.component` 直接拉起 Aerial（见下）。守护的作用是 HOME 被抢后切回来。
 - 全程只用 `adb shell` 权限，**没用 root**。测试日期 2026-10-22 / 23。
 
 ## 开 ADB：固件开机不会把 adbd 拉起来
@@ -127,7 +128,20 @@ T+27s ~ T+57s  48 次采样全部为 app.orchard.tv/.MainActivity
 `mResumedActivity` 全程没出现过 `com.tcl.cyberui`；连按 3 次 Home 也停在同一 task。
 比 guard 守护干净：不需要无障碍、不需要通知监听、不受 `APP_AUTO_START` / `APP_ASSOC_START` 限制。
 
-建议其他 TCL 机型先探一下有没有默认值：`getprop persist.sys.launcher.component`。
+**但固件属性只管「开机拉谁」，不管「Android 认为谁是默认桌面」——两者是两套机制，必须都对齐。** 判断后者：
+
+```bash
+adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME
+# 正常：直接输出 app.orchard.tv/.MainActivity，且 isDefault=true
+# 不正常：输出 com.android.internal.app.ResolverActivity，isDefault=false
+```
+
+出现 `ResolverActivity` 说明 HOME 有多个候选、没有唯一默认（这台两个候选 `com.tcl.cyberui` 和 `app.orchard.tv` 都声明了 HOME）。这时按 Home 键可能弹选择框，开机启动路径也可能先把原桌面拉起来——`com.tcl.cyberui` 起来后会读「当前桌面是谁」，读到 `app.orchard.tv` 又不是自己，在 `FKPageConfigManager.setIs4KEnv` 里抛 `SecurityException: Package app.orchard.tv does not belong to 1000` 自杀（见「已知问题」第 3 条）。
+
+`cmd package set-home-activity --user 0 app.orchard.tv/.MainActivity` 就是把这条补上：执行前 `dumpsys package | grep -A10 'Preferred Activities'` 里 `mMatch=0x0`，执行后变 `mMatch=0x100000 mAlways=true`，`resolve-activity` 也从 Resolver 变成直接命中。
+**注意**：`adb install -r` 覆盖升级后这条记录可能被 PMS 重算，升级完要复查一次。
+
+建议其他 TCL 机型先探一下有没有默认值：`getprop persist.sys.launcher.component`，再核一次 `resolve-activity`。
 
 ## 已知问题
 
@@ -158,7 +172,7 @@ T+27s ~ T+57s  48 次采样全部为 app.orchard.tv/.MainActivity
 
 根治要走 `createDeviceProtectedStorageContext()` + `android:directBootAware="true"`，把开机路径的配置迁到 DP 存储。
 
-### 2. 冷启动时 TCL 桌面抢前台约 1.2 秒，随后自己崩
+### 2. 冷启动时 TCL 桌面偶发抢前台约 1.2 秒，随后自己崩
 
 ```
 08:42:24.8  am_create_activity: com.tcl.cyberui/.MainActivity   ← 前台被抢
@@ -169,8 +183,11 @@ T+27s ~ T+57s  48 次采样全部为 app.orchard.tv/.MainActivity
 08:42:26.0  Aerial 重建，恢复前台
 ```
 
-即 TCL 桌面自己站不住（以 uid 1000 读「当前桌面包」时撞 uid 校验），但启动瞬间会顶掉 Aerial。
-成因是我们把默认桌面改成了非 TCL 包；属固件侧行为，Aerial 无过错。
+**不是「默认桌面掉了」，而是从来没在 Android 层设过唯一默认。** 固件的 `persist.sys.launcher.component` 只管「开机拉谁」，HOME 的解析结果另算：两个包都声明了 HOME，`resolve-activity` 落到 `ResolverActivity`、`isDefault=false`（见「开机直达」一节的自检命令）。这种状态下某些启动路径会先把原桌面拉起来。
+
+cyberui 起来后以 uid 1000 去读 Settings 里的「当前桌面包」，读到 `app.orchard.tv` 又不是自己，在 `FKPageConfigManager.setIs4KEnv` 撞 uid 校验自杀，顺手把 Aerial force-crash 一次。属固件侧行为，Aerial 无过错。
+
+**修复**：`cmd package set-home-activity --user 0 app.orchard.tv/.MainActivity`（执行后 `isDefault=true`）。修复后下一次冷启动（09:28:50 开机）日志里 cyberui 只剩 `am_proc_start`（`empty=true` 的空进程，挂着 `LauncherUpdateService` / `RestartService` 两个 TCL 常驻服务），**没有 `am_create_activity`**，也就没抢前台；连按两次 Home + 显式发 HOME intent 都直接命中 `app.orchard.tv/.MainActivity`。
 
 ### 3. 「下载并安装」自动升级不可用
 
