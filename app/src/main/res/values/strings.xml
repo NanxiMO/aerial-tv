@@ -217,6 +217,7 @@
     <string name="cc_networks_empty">No networks in range.</string>
     <string name="cc_networks_saved">Saved</string>
     <string name="cc_networks_open">Open</string>
+    <string name="cc_networks_secured">Secured</string>
     <string name="cc_networks_connected">Connected</string>
     <string name="cc_networks_password_title">Password for %1$s</string>
     <string name="cc_networks_join">Join</string>

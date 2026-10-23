@@ -216,6 +216,7 @@
     <string name="cc_networks_empty">附近没有可用网络。</string>
     <string name="cc_networks_saved">已保存</string>
     <string name="cc_networks_open">开放网络</string>
+    <string name="cc_networks_secured">加密网络</string>
     <string name="cc_networks_connected">已连接</string>
     <string name="cc_networks_password_title">%1$s 的密码</string>
     <string name="cc_networks_join">连接</string>

@@ -534,17 +534,33 @@ private fun NetworksPage(vm: HomeViewModel, takeFocus: Boolean, onOpen: (android
                 )
             }
             list.forEach { ap ->
-                // What the row is: connected first, then saved and locked networks.
-                val label: String? = when {
-                    ap.connected -> stringResource(R.string.cc_networks_connected)
-                    ap.saved -> stringResource(R.string.cc_networks_saved)
-                    ap.secured -> null
-                    else -> stringResource(R.string.cc_networks_open)
+                // One indicator style for every row: a coloured dot, then the state in words.
+                val label: String
+                val dot: Color
+                when {
+                    ap.connected -> {
+                        label = stringResource(R.string.cc_networks_connected)
+                        dot = Palette.Green
+                    }
+                    ap.saved -> {
+                        label = stringResource(R.string.cc_networks_saved)
+                        dot = Palette.SecondaryLabel
+                    }
+                    ap.secured -> {
+                        label = stringResource(R.string.cc_networks_secured)
+                        dot = Palette.Orange
+                    }
+                    else -> {
+                        label = stringResource(R.string.cc_networks_open)
+                        dot = Palette.Blue
+                    }
                 }
                 MenuRow(
                     Glyph.Wifi,
                     ap.ssid,
                     trailing = label,
+                    trailingDot = dot,
+                    trailingWidth = 56.dp,
                     onClick = {
                         when {
                             ap.connected -> Unit
